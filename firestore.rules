@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.role == 'admin' ||
+        request.auth.token.email == 'sfdgymkhana@gmail.com' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+
+    // Site settings: Publicly readable, writeable only by admin
+    match /siteSettings/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Public gym programs & gallery
+    match /gymPrograms/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /gallery/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /offers/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /discounts/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.role == 'customer';
+      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Admission applications
+    match /admissionApplications/{applicationId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.applicationStatus == 'Pending Review';
+      allow update, delete: if isAdmin();
+    }
+
+    // Memberships
+    match /memberships/{membershipId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Payments (Strict financial safeguards)
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Notifications
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && (
+        resource.data.recipientId == request.auth.uid ||
+        resource.data.recipientId == 'all' ||
+        isAdmin()
+      );
+      allow write: if isAdmin();
+    }
+
+    // Audit logs: Read/write exclusively for administrators
+    match /auditLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

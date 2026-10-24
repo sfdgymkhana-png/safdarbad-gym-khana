@@ -1,0 +1,27 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.role == 'admin' ||
+        request.auth.token.email == 'sfdgymkhana@gmail.com'
+      );
+    }
+    
+    function isImage() {
+      return request.resource.contentType.matches('image/(jpeg|png|webp)');
+    }
+
+    // Public gym media gallery and banners
+    match /gallery/{imageId} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage() && request.resource.size < 10 * 1024 * 1024;
+    }
+
+    match /branding/{logoId} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage();
+    }
+  }
+}
