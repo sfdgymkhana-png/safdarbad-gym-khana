@@ -186,15 +186,15 @@ export default function AdmissionPage() {
     <div className="bg-[#101010] text-white min-h-screen">
       <Navbar />
 
-      <main className="pt-28 pb-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+      <main className="pt-24 sm:pt-28 pb-16 sm:pb-20 px-3.5 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         {!submittedApplication ? (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Header */}
             <div className="text-center space-y-2">
               <span className="text-xs font-bold text-[#FF6B00] uppercase tracking-widest">
                 Start Your Fitness Journey
               </span>
-              <h1 className="font-heading text-3xl sm:text-5xl font-extrabold text-white">
+              <h1 className="font-heading text-2xl sm:text-5xl font-extrabold text-white">
                 Gym Admission Application
               </h1>
               <p className="text-xs sm:text-sm text-zinc-400 max-w-lg mx-auto">
@@ -210,7 +210,7 @@ export default function AdmissionPage() {
             )}
 
             {/* Application Form Card */}
-            <div className="bg-[#181818] border border-zinc-800 rounded-2xl p-6 sm:p-10 shadow-2xl">
+            <div className="bg-[#181818] border border-zinc-800 rounded-2xl p-4 sm:p-10 shadow-2xl">
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Section 1: Member Photo Upload */}
                 <div className="space-y-3">

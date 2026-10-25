@@ -31,9 +31,14 @@ import { GymStore } from "@/lib/store";
 interface AdminSidebarProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
+  onNavigate?: () => void;
 }
 
-export default function AdminSidebar({ collapsed, onToggleCollapse }: AdminSidebarProps) {
+export default function AdminSidebar({
+  collapsed,
+  onToggleCollapse,
+  onNavigate,
+}: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [logoUrl, setLogoUrl] = useState("/images/logo.png");
@@ -109,7 +114,8 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }: AdminSideb
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                onClick={() => onNavigate?.()}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all ${
                   isActive
                     ? "bg-[#FF6B00] text-white font-bold shadow-md shadow-[#FF6B00]/20"
                     : "text-zinc-400 hover:text-white hover:bg-[#1A1A1A]"
@@ -129,15 +135,19 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }: AdminSideb
         <Link
           href="/"
           target="_blank"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          onClick={() => onNavigate?.()}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
           title="View Public Site"
         >
           <ExternalLink className="w-4 h-4 shrink-0 text-zinc-400" />
           {!collapsed && <span>View Public Site</span>}
         </Link>
         <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-red-400 hover:bg-red-950/40 transition-colors"
+          onClick={() => {
+            onNavigate?.();
+            handleLogout();
+          }}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-red-400 hover:bg-red-950/40 transition-colors"
           title="Sign Out"
         >
           <LogOut className="w-4 h-4 shrink-0" />

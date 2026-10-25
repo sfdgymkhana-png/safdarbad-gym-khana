@@ -96,16 +96,16 @@ export default function AdminPaymentsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="px-4 py-2 bg-[#161616] border border-zinc-800 rounded-lg text-xs">
-            <span className="text-zinc-500 mr-2">Total Verified Collections:</span>
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="flex-1 sm:flex-none px-4 py-2 bg-[#161616] border border-zinc-800 rounded-lg text-xs flex items-center justify-between sm:justify-start gap-2">
+            <span className="text-zinc-500">Total Collected:</span>
             <span className="font-heading font-extrabold text-emerald-400 text-sm">
               {formatPKR(totalCollected)}
             </span>
           </div>
           <button
             onClick={() => setShowNewPayModal(true)}
-            className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md flex items-center gap-1.5 transition-colors"
+            className="flex-1 sm:flex-none px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md flex items-center justify-center gap-1.5 transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span>Record Payment</span>
@@ -142,8 +142,55 @@ export default function AdminPaymentsPage() {
         </div>
       </div>
 
-      {/* Transactions Table */}
-      <div className="bg-[#161616] border border-zinc-800 rounded-xl overflow-hidden shadow-xl">
+      {/* Mobile Transactions Cards (Visible on screens < md) */}
+      <div className="block md:hidden space-y-3">
+        {filtered.map((p) => (
+          <div
+            key={p.paymentId}
+            className="bg-[#161616] border border-zinc-800 rounded-xl p-4 space-y-3 shadow-lg"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <h4 className="font-heading font-bold text-white text-sm">{p.customerName}</h4>
+                <span className="text-[10px] text-zinc-500 font-mono block">Receipt #{p.receiptNumber}</span>
+              </div>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${getPaymentBadgeClass(p.status)}`}>
+                {p.status}
+              </span>
+            </div>
+
+            <div className="p-2.5 bg-[#111111] rounded-lg border border-zinc-800/80 grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span className="text-zinc-500 text-[10px] uppercase block">Date:</span>
+                <span className="text-zinc-300">{p.paymentDate}</span>
+              </div>
+              <div>
+                <span className="text-zinc-500 text-[10px] uppercase block">Method:</span>
+                <span className="text-amber-400 font-medium">{p.paymentMethod}</span>
+              </div>
+              <div>
+                <span className="text-zinc-500 text-[10px] uppercase block">Amount:</span>
+                <span className="font-bold text-emerald-400 text-sm">{formatPKR(p.amountReceived)}</span>
+              </div>
+              <div>
+                <span className="text-zinc-500 text-[10px] uppercase block">Staff:</span>
+                <span className="text-zinc-400">{p.recordedBy}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setActiveReceipt(p)}
+              className="w-full py-2 bg-[#252525] hover:bg-zinc-700 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors border border-zinc-700"
+            >
+              <Printer className="w-3.5 h-3.5 text-[#FFC857]" />
+              <span>View & Print Receipt</span>
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Transactions Table (Visible on md and up) */}
+      <div className="hidden md:block bg-[#161616] border border-zinc-800 rounded-xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>

@@ -303,20 +303,20 @@ export default function AdminMembersPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <button
             onClick={exportCSV}
-            className="px-3.5 py-2 bg-[#1C1C1C] hover:bg-zinc-800 text-zinc-300 border border-zinc-700 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors"
+            className="flex-1 sm:flex-none px-3.5 py-2 bg-[#1C1C1C] hover:bg-zinc-800 text-zinc-300 border border-zinc-700 text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV</span>
           </button>
           <button
             onClick={() => setShowAddModal(true)}
-            className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md flex items-center gap-1.5 transition-colors"
+            className="flex-1 sm:flex-none px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md flex items-center justify-center gap-1.5 transition-colors"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Walk-in Member</span>
+            <span>Add Walk-in</span>
           </button>
         </div>
       </div>
@@ -364,8 +364,109 @@ export default function AdminMembersPage() {
         </div>
       </div>
 
-      {/* Members Table */}
-      <div className="bg-[#161616] border border-zinc-800 rounded-xl overflow-hidden shadow-xl">
+      {/* Mobile Member Cards (Visible on mobile screens < md) */}
+      <div className="block md:hidden space-y-3">
+        {filtered.map((m) => {
+          const daysLeft = getDaysRemaining(m.endDate);
+          return (
+            <div
+              key={m.membershipId}
+              className="bg-[#161616] border border-zinc-800 rounded-xl p-4 space-y-3 shadow-lg"
+            >
+              {/* Header: Photo + Name + Badges */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  {m.photoUrl ? (
+                    <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-[#FF6B00]/70 shrink-0">
+                      <Image src={m.photoUrl} alt={m.customerName} fill className="object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0 text-zinc-500">
+                      <User className="w-6 h-6" />
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="font-heading font-bold text-white text-sm">{m.customerName}</h4>
+                    <span className="text-[10px] text-zinc-500 font-mono block">ID: {m.membershipId}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${getMembershipBadgeClass(m.membershipStatus)}`}>
+                    {m.membershipStatus}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${getPaymentBadgeClass(m.paymentStatus)}`}>
+                    {m.paymentStatus}
+                  </span>
+                </div>
+              </div>
+
+              {/* Info details */}
+              <div className="p-2.5 bg-[#111111] rounded-lg border border-zinc-800/80 grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-zinc-500 text-[10px] block uppercase">Phone:</span>
+                  <a href={`tel:${m.customerPhone}`} className="text-zinc-200 font-medium hover:text-[#FF6B00]">
+                    {m.customerPhone}
+                  </a>
+                </div>
+                <div>
+                  <span className="text-zinc-500 text-[10px] block uppercase">Balance Due:</span>
+                  <span className={m.balanceDue > 0 ? "text-amber-400 font-bold" : "text-emerald-400 font-bold"}>
+                    {m.balanceDue > 0 ? formatPKR(m.balanceDue) : "PKR 0 (Clear)"}
+                  </span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-zinc-500 text-[10px] block uppercase">Plan & Expiry:</span>
+                  <span className="text-zinc-300">
+                    {m.planName} &bull; {m.endDate} ({daysLeft > 0 ? `${daysLeft} days left` : "Expired"})
+                  </span>
+                </div>
+              </div>
+
+              {/* Mobile Quick Action Buttons with Clear Labels & Icons */}
+              <div className="grid grid-cols-4 gap-1.5 pt-1">
+                <button
+                  onClick={() => {
+                    setShowPayModal(m);
+                    setPayAmount(m.balanceDue || m.finalPrice);
+                  }}
+                  className="py-2 px-1 bg-emerald-950/40 hover:bg-emerald-900/50 text-emerald-400 border border-emerald-800/50 rounded-lg flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-colors"
+                >
+                  <CreditCard className="w-3.5 h-3.5" />
+                  <span>Pay</span>
+                </button>
+
+                <button
+                  onClick={() => handleRenew(m)}
+                  className="py-2 px-1 bg-amber-950/40 hover:bg-amber-900/50 text-[#FFC857] border border-amber-800/50 rounded-lg flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-colors"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Renew</span>
+                </button>
+
+                <button
+                  onClick={() => handleOpenEdit(m)}
+                  className="py-2 px-1 bg-blue-950/40 hover:bg-blue-900/50 text-blue-400 border border-blue-800/50 rounded-lg flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-colors"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                  <span>Edit</span>
+                </button>
+
+                <button
+                  onClick={() => setShowDeleteModal(m)}
+                  className="py-2 px-1 bg-red-950/40 hover:bg-red-900/50 text-red-400 border border-red-800/50 rounded-lg flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Remove</span>
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop Members Table (Visible on md and up) */}
+      <div className="hidden md:block bg-[#161616] border border-zinc-800 rounded-xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>

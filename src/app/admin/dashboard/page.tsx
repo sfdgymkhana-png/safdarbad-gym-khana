@@ -75,17 +75,17 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <Link
             href="/admin/admissions"
-            className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md transition-colors flex items-center gap-1.5"
+            className="flex-1 sm:flex-none px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md transition-colors flex items-center justify-center gap-1.5"
           >
             <UserCheck className="w-4 h-4" />
             <span>Review Admissions ({pendingApps})</span>
           </Link>
           <Link
             href="/admin/payments"
-            className="px-4 py-2 bg-[#222222] hover:bg-zinc-800 text-zinc-200 border border-zinc-700 text-xs font-bold uppercase tracking-wider rounded-lg transition-colors flex items-center gap-1.5"
+            className="flex-1 sm:flex-none px-4 py-2 bg-[#222222] hover:bg-zinc-800 text-zinc-200 border border-zinc-700 text-xs font-bold uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-1.5"
           >
             <CreditCard className="w-4 h-4 text-emerald-400" />
             <span>Record Payment</span>

@@ -213,8 +213,86 @@ export default function AdminAdmissionsPage() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-[#161616] border border-zinc-800 rounded-xl overflow-hidden shadow-xl">
+      {/* Mobile Applications Cards (Visible on screens < md) */}
+      <div className="block md:hidden space-y-3">
+        {filtered.map((app) => (
+          <div
+            key={app.applicationId}
+            className="bg-[#161616] border border-zinc-800 rounded-xl p-4 space-y-3 shadow-lg"
+          >
+            {/* Header: Photo + Name + Statuses */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                {app.photoUrl ? (
+                  <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-[#FF6B00]/60 shrink-0">
+                    <Image src={app.photoUrl} alt={app.fullName} fill className="object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0 text-zinc-500">
+                    <User className="w-6 h-6" />
+                  </div>
+                )}
+                <div>
+                  <h4 className="font-heading font-bold text-white text-sm">{app.fullName}</h4>
+                  <span className="text-[10px] text-zinc-500 font-mono block">ID: {app.applicationId}</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-end gap-1">
+                <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${getApplicationBadgeClass(app.applicationStatus)}`}>
+                  {app.applicationStatus}
+                </span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${getPaymentBadgeClass(app.paymentStatus)}`}>
+                  {app.paymentStatus}
+                </span>
+              </div>
+            </div>
+
+            {/* Info Details */}
+            <div className="p-2.5 bg-[#111111] rounded-lg border border-zinc-800/80 space-y-1.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-zinc-500 text-[10px] uppercase">Phone:</span>
+                <a href={`tel:${app.phone}`} className="text-zinc-200 font-medium hover:text-[#FF6B00]">
+                  {app.phone}
+                </a>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-500 text-[10px] uppercase">Plan:</span>
+                <span className="text-zinc-300">{app.requestedPlanName}</span>
+              </div>
+              <div className="flex justify-between pt-1 border-t border-zinc-800">
+                <span className="text-zinc-500 text-[10px] uppercase">Total Fee:</span>
+                <div className="text-right">
+                  <span className="font-bold text-[#FF6B00]">{formatPKR(app.finalPrice)}</span>
+                  <span className="text-[10px] text-zinc-400 block">
+                    (Adm {formatPKR(app.admissionFee ?? 3000)} + Mo {formatPKR(app.monthlyFee ?? 2500)})
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                onClick={() => handleOpenReview(app)}
+                className="flex-1 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white font-bold rounded-lg text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors shadow-md"
+              >
+                <span>Review & Process</span>
+              </button>
+              <button
+                onClick={() => handleDeleteApplication(app.applicationId)}
+                className="p-2 bg-zinc-800 hover:bg-red-950/50 text-zinc-400 hover:text-red-400 border border-zinc-700 rounded-lg transition-colors"
+                title="Delete Application"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table (Visible on md and up) */}
+      <div className="hidden md:block bg-[#161616] border border-zinc-800 rounded-xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>

@@ -105,20 +105,20 @@ export default function HomePage() {
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1A1A1A]/90 border border-[#FF6B00]/40 shadow-lg mb-6 backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-[#FF6B00] animate-pulse" />
-            <span className="text-xs sm:text-sm font-semibold tracking-wider text-[#FFC857] uppercase">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1A1A1A]/90 border border-[#FF6B00]/40 shadow-lg mb-6 backdrop-blur-md max-w-full">
+            <span className="w-2 h-2 rounded-full bg-[#FF6B00] animate-pulse shrink-0" />
+            <span className="text-[11px] sm:text-sm font-semibold tracking-wider text-[#FFC857] uppercase text-center truncate">
               Safdarabad&apos;s Premier Strength & Fitness Club
             </span>
           </div>
 
           {/* Main Headline */}
-          <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight uppercase leading-none drop-shadow-md">
+          <h1 className="font-heading text-3xl sm:text-5xl md:text-7xl font-extrabold tracking-tight uppercase leading-tight sm:leading-none drop-shadow-md break-words max-w-full">
             {settings.heroHeadline}
           </h1>
 
           {/* Subheading */}
-          <p className="mt-6 text-base sm:text-lg md:text-xl text-zinc-300 max-w-2xl font-normal leading-relaxed">
+          <p className="mt-4 sm:mt-6 text-sm sm:text-lg md:text-xl text-zinc-300 max-w-2xl font-normal leading-relaxed">
             {settings.heroSupportingText}
           </p>
 

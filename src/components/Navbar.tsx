@@ -75,8 +75,8 @@ export default function Navbar() {
             ))}
           </nav>
 
-          {/* Action CTAs */}
-          <div className="hidden sm:flex items-center gap-3">
+          {/* Desktop Action CTAs */}
+          <div className="hidden lg:flex items-center gap-3">
             <Link
               href="/login"
               className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-zinc-200 hover:text-white bg-[#1A1A1A] hover:bg-[#252525] border border-zinc-700/60 rounded-md transition-all"
@@ -93,13 +93,13 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Mobile Hamburger Toggle */}
-          <div className="flex sm:hidden items-center gap-2">
+          {/* Mobile & Tablet Hamburger Toggle */}
+          <div className="flex lg:hidden items-center gap-2">
             <Link
               href="/admission"
-              className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white bg-[#FF6B00] rounded"
+              className="px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-white bg-gradient-to-r from-[#FF6B00] to-[#FF8533] rounded shadow-md"
             >
-              Join
+              Join Now
             </Link>
             <button
               onClick={() => setIsOpen(!isOpen)}
@@ -112,27 +112,34 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Mobile & Tablet Drawer */}
       {isOpen && (
-        <div className="sm:hidden bg-[#141414] border-b border-zinc-800 px-5 pt-3 pb-6 space-y-3 animate-in slide-in-from-top duration-200">
-          <div className="flex flex-col space-y-2 pt-2">
+        <div className="lg:hidden bg-[#141414]/98 backdrop-blur-xl border-b border-zinc-800 px-5 pt-3 pb-6 space-y-3 shadow-2xl animate-in slide-in-from-top duration-200">
+          <div className="flex flex-col space-y-1 pt-1">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
-                className="text-base font-medium text-zinc-300 hover:text-[#FF6B00] py-1.5 border-b border-zinc-800/40"
+                className="text-base font-medium text-zinc-300 hover:text-[#FF6B00] py-2 border-b border-zinc-800/40"
               >
                 {link.name}
               </Link>
             ))}
           </div>
 
-          <div className="pt-3">
+          <div className="pt-2 flex flex-col gap-2">
+            <Link
+              href="/admission"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center justify-center gap-2 py-3 text-sm font-bold uppercase tracking-wider bg-gradient-to-r from-[#FF6B00] to-[#FF8533] text-white rounded-lg shadow-lg shadow-[#FF6B00]/20"
+            >
+              <span>Apply For Online Admission</span>
+            </Link>
             <Link
               href="/login"
               onClick={() => setIsOpen(false)}
-              className="flex items-center justify-center gap-2 py-2.5 text-sm font-semibold bg-[#222222] text-zinc-200 rounded border border-zinc-700 w-full"
+              className="flex items-center justify-center gap-2 py-2.5 text-sm font-semibold bg-[#222222] text-zinc-200 rounded-lg border border-zinc-700 w-full"
             >
               <User className="w-4 h-4 text-[#FF6B00]" />
               <span>Login to Member Portal</span>
@@ -141,7 +148,7 @@ export default function Navbar() {
 
           <div className="pt-2 text-xs text-zinc-400 flex items-center justify-between border-t border-zinc-800/60 pt-3">
             <span>Call: +92 305 9422464</span>
-            <span className="text-[#FFC857]">PKR 2,500/mo</span>
+            <span className="text-[#FFC857]">Monthly: PKR 2,500</span>
           </div>
         </div>
       )}

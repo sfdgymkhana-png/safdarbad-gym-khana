@@ -135,7 +135,7 @@ export default function AdminGalleryPage() {
             setMediaType("image");
             setShowAddModal(true);
           }}
-          className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md flex items-center gap-1.5 transition-colors"
+          className="w-full sm:w-auto px-4 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md flex items-center justify-center gap-1.5 transition-colors"
         >
           <Upload className="w-4 h-4" />
           <span>Upload Image / Video</span>

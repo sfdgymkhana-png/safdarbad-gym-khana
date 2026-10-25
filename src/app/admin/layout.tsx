@@ -31,6 +31,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [pathname, isLoginPage, router]);
 
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
   // If on login page, don't show the dashboard shell
   if (isLoginPage) {
     return <div className="min-h-screen bg-[#0E0E0E] text-white">{children}</div>;
@@ -56,15 +60,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden flex">
           <div
-            className="fixed inset-0 bg-black/80"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="relative z-50 w-72 h-full bg-[#121212]">
+          <div className="relative z-50 w-72 max-w-[85vw] h-full bg-[#121212] shadow-2xl flex flex-col">
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="absolute top-4 right-3 p-1.5 text-zinc-400 hover:text-white bg-zinc-800 rounded-lg z-50"
+              aria-label="Close sidebar"
+            >
+              <X className="w-4 h-4" />
+            </button>
             <AdminSidebar
               collapsed={false}
               onToggleCollapse={() => setMobileOpen(false)}
+              onNavigate={() => setMobileOpen(false)}
             />
           </div>
         </div>
@@ -86,6 +98,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               <Menu className="w-5 h-5" />
             </button>
+            <div className="block sm:hidden">
+              <span className="font-heading text-xs font-bold text-white tracking-wider block">
+                GYM KHAN’A
+              </span>
+              <span className="text-[9px] text-[#FF6B00] font-semibold block uppercase tracking-wider">
+                Admin Portal
+              </span>
+            </div>
             <div className="hidden sm:block">
               <span className="text-xs text-zinc-400 block">Administration Management</span>
               <h2 className="font-heading text-base font-bold text-white tracking-wider">
@@ -94,7 +114,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/admin/notifications"
               className="p-2 text-zinc-400 hover:text-amber-400 bg-[#1C1C1C] hover:bg-zinc-800 rounded-lg relative"
@@ -104,7 +124,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#FF6B00]" />
             </Link>
 
-            <div className="flex items-center gap-2 pl-3 border-l border-zinc-800">
+            <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-zinc-800">
               <div className="w-8 h-8 rounded-full bg-[#FF6B00] text-black font-bold font-heading flex items-center justify-center text-xs">
                 A
               </div>
@@ -117,7 +137,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Page View Body */}
-        <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">{children}</main>
+        <main className="flex-1 p-3.5 sm:p-8 max-w-7xl w-full mx-auto">{children}</main>
       </div>
     </div>
   );

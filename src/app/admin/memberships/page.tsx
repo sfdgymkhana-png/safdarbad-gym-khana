@@ -113,8 +113,69 @@ export default function AdminMembershipsPage() {
         </button>
       </div>
 
-      {/* Table */}
-      <div className="bg-[#161616] border border-zinc-800 rounded-xl overflow-hidden shadow-xl">
+      {/* Mobile Memberships Cards (Visible on screens < md) */}
+      <div className="block md:hidden space-y-3">
+        {filtered.map((m) => {
+          const days = getDaysRemaining(m.endDate);
+          return (
+            <div
+              key={m.membershipId}
+              className="bg-[#161616] border border-zinc-800 rounded-xl p-4 space-y-3 shadow-lg"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <h4 className="font-heading font-bold text-white text-sm">{m.customerName}</h4>
+                  <span className="text-[10px] text-zinc-500 font-mono block">ID: {m.membershipId}</span>
+                </div>
+                <span
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                    days <= 0
+                      ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                      : days <= 7
+                      ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                      : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                  }`}
+                >
+                  {days <= 0 ? "Expired" : `${days}d left`}
+                </span>
+              </div>
+
+              <div className="p-2.5 bg-[#111111] rounded-lg border border-zinc-800/80 space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-zinc-500 text-[10px] uppercase">Plan:</span>
+                  <span className="text-zinc-300 font-medium">{m.planName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-500 text-[10px] uppercase">Period:</span>
+                  <span className="text-zinc-300">{m.startDate} &rarr; {m.endDate}</span>
+                </div>
+                <div className="flex justify-between pt-1 border-t border-zinc-800">
+                  <span className="text-zinc-500 text-[10px] uppercase">Status:</span>
+                  <div className="flex gap-1.5">
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${getMembershipBadgeClass(m.membershipStatus)}`}>
+                      {m.membershipStatus}
+                    </span>
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${getPaymentBadgeClass(m.paymentStatus)}`}>
+                      {m.paymentStatus}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => handleRenew(m)}
+                className="w-full py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Renew Membership (+1 Month)</span>
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop Table (Visible on md and up) */}
+      <div className="hidden md:block bg-[#161616] border border-zinc-800 rounded-xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
