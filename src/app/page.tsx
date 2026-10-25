@@ -53,8 +53,8 @@ export default function HomePage() {
         basePrice: currentSettings.standardMonthlyFee || 2500,
         isActive: true,
         features: [
-          `New Admission Fee: ${formatPKR(currentSettings.standardAdmissionFee || 3000)} (One-Time)`,
-          `Monthly Membership Fee: ${formatPKR(currentSettings.standardMonthlyFee || 2500)} / Month`,
+          `One-Time Admission Fee (New Members Only): ${formatPKR(currentSettings.standardAdmissionFee || 3000)}`,
+          `Standard Monthly Charge: ${formatPKR(currentSettings.standardMonthlyFee || 2500)} / Month`,
           "Unlimited Daily Gym Access (6 AM - 11 PM)",
           "Full Access to Dumbbells & Power Cages",
           "Chest, Back, Leg & Shoulder Machines",
@@ -355,10 +355,18 @@ export default function HomePage() {
                     <span className="font-heading text-4xl sm:text-5xl font-extrabold text-[#FF6B00]">
                       {formatPKR(plan.basePrice)}
                     </span>
-                    <span className="text-sm text-zinc-400">/ per month</span>
+                    <span className="text-sm text-zinc-400 font-medium">/ month</span>
                   </div>
-                  <div className="inline-block mt-2 px-3 py-1 bg-zinc-800/80 border border-zinc-700/80 rounded-full text-xs text-zinc-300">
-                    New Admission Fee: <strong className="text-white">{formatPKR(settings?.standardAdmissionFee || 3000)}</strong> (One-Time)
+
+                  {/* Clean, small subtle badge for admission fee */}
+                  <div className="inline-flex flex-wrap items-center justify-center gap-1.5 mt-2.5 px-3.5 py-1.5 bg-zinc-900/90 border border-zinc-700/80 rounded-full text-xs text-zinc-300 shadow-sm">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF6B00]" />
+                    <span className="text-zinc-400 font-medium">If you are new:</span>
+                    <span>Admission fee</span>
+                    <strong className="text-white font-bold">{formatPKR(settings?.standardAdmissionFee || 3000)}</strong>
+                    <span className="text-[10px] text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700 font-medium uppercase tracking-wider">
+                      One-Time
+                    </span>
                   </div>
                 </div>
 
