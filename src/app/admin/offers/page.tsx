@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import Image from "next/image";
 import { GymStore } from "@/lib/store";
 import { SpecialOffer } from "@/lib/types";
-import { Sparkles, Plus, Check, X, Eye, EyeOff } from "lucide-react";
+import { compressAndReadFile } from "@/lib/imageUtils";
+import { Sparkles, Plus, Check, X, Eye, EyeOff, Upload } from "lucide-react";
 
 export default function AdminOffersPage() {
   const [offers, setOffers] = useState<SpecialOffer[]>([]);
@@ -12,8 +14,11 @@ export default function AdminOffersPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [badge, setBadge] = useState("Seasonal Offer");
+  const [imageUrl, setImageUrl] = useState("/images/gym-workout.jpg");
   const [startDate, setStartDate] = useState("2026-01-01");
   const [endDate, setEndDate] = useState("2026-12-31");
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadData = () => {
     setOffers(GymStore.getOffers());
@@ -31,6 +36,21 @@ export default function AdminOffersPage() {
     loadData();
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const dataUrl = await compressAndReadFile(file, 1200, 1200, 0.85);
+      setImageUrl(dataUrl);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : "Failed to read image file.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -40,7 +60,7 @@ export default function AdminOffersPage() {
       title: title.trim(),
       description: description.trim(),
       badge: badge.trim() || undefined,
-      imageUrl: "/images/gym-workout.jpg",
+      imageUrl,
       startDate,
       endDate,
       isPublished: true,
@@ -51,6 +71,7 @@ export default function AdminOffersPage() {
     setShowModal(false);
     setTitle("");
     setDescription("");
+    setImageUrl("/images/gym-workout.jpg");
     loadData();
   };
 
@@ -62,7 +83,7 @@ export default function AdminOffersPage() {
             Special Marketing Offers
           </h1>
           <p className="text-xs text-zinc-400 mt-0.5">
-            Manage promotional campaigns, banners, and published offers for the public website.
+            Manage promotional campaigns, banners, and published offers with custom uploaded images.
           </p>
         </div>
 
@@ -79,13 +100,20 @@ export default function AdminOffersPage() {
         {offers.map((offer) => (
           <div
             key={offer.offerId}
-            className="bg-[#161616] border border-zinc-800 rounded-xl p-6 space-y-4 shadow-xl flex flex-col justify-between"
+            className="bg-[#161616] border border-zinc-800 rounded-xl overflow-hidden shadow-xl flex flex-col justify-between"
           >
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="px-2 py-0.5 text-xs font-bold rounded bg-[#FF6B00]/20 text-[#FF6B00] border border-[#FF6B00]/30">
+            {offer.imageUrl && (
+              <div className="relative h-40 w-full">
+                <Image src={offer.imageUrl} alt={offer.title} fill className="object-cover" />
+                <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 text-xs font-bold rounded bg-[#FF6B00] text-white">
                   {offer.badge || "Special Offer"}
                 </span>
+              </div>
+            )}
+
+            <div className="p-6 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-zinc-500 font-mono">ID: {offer.offerId}</span>
                 <span
                   className={`text-xs font-semibold ${
                     offer.isPublished ? "text-emerald-400" : "text-zinc-500"
@@ -97,23 +125,19 @@ export default function AdminOffersPage() {
 
               <h3 className="font-heading text-xl font-bold text-white">{offer.title}</h3>
               <p className="text-xs text-zinc-400 leading-relaxed">{offer.description}</p>
-
-              <div className="text-[11px] text-zinc-500 pt-2 border-t border-zinc-800">
-                Validity: {offer.startDate} &rarr; {offer.endDate}
-              </div>
             </div>
 
-            <div className="pt-2 flex items-center justify-end">
+            <div className="p-6 pt-0 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
+              <span>Valid: {offer.startDate} to {offer.endDate}</span>
               <button
                 onClick={() => handleTogglePublish(offer)}
-                className={`px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                className={`px-3 py-1.5 rounded font-semibold transition-colors ${
                   offer.isPublished
                     ? "bg-zinc-800 text-zinc-300 hover:text-white"
-                    : "bg-emerald-600 text-white hover:bg-emerald-500"
+                    : "bg-[#FF6B00] text-white hover:bg-[#e05e00]"
                 }`}
               >
-                {offer.isPublished ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                <span>{offer.isPublished ? "Unpublish Offer" : "Publish to Website"}</span>
+                {offer.isPublished ? "Unpublish" : "Publish"}
               </button>
             </div>
           </div>
@@ -124,7 +148,7 @@ export default function AdminOffersPage() {
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#181818] border border-zinc-700 max-w-md w-full rounded-2xl p-6 space-y-5 shadow-2xl">
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-              <h3 className="font-heading text-lg font-bold text-white">Create New Offer</h3>
+              <h3 className="font-heading text-lg font-bold text-white">Create Special Offer</h3>
               <button onClick={() => setShowModal(false)} className="text-zinc-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
@@ -151,6 +175,32 @@ export default function AdminOffersPage() {
                   onChange={(e) => setBadge(e.target.value)}
                   placeholder="e.g. Limited Time"
                   className="w-full px-3 py-2 bg-[#121212] border border-zinc-700 rounded-lg text-white"
+                />
+              </div>
+
+              {/* Offer Banner Image Upload */}
+              <div>
+                <label className="block text-zinc-300 font-semibold mb-1">Banner Image</label>
+                <div className="relative h-32 w-full rounded-xl overflow-hidden border-2 border-dashed border-[#FF6B00]/70 bg-zinc-900 flex items-center justify-center mb-2">
+                  <Image src={imageUrl} alt="Banner Preview" fill className="object-cover" />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="px-3.5 py-1.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white font-bold rounded-lg shadow flex items-center gap-1.5 transition-transform"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{uploading ? "Uploading..." : "Upload Banner Image"}</span>
+                    </button>
+                  </div>
+                </div>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
                 />
               </div>
 
@@ -189,7 +239,7 @@ export default function AdminOffersPage() {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-[#FF6B00] hover:bg-[#e05e00] text-white font-bold uppercase rounded-lg transition-colors"
+                className="w-full py-3 bg-[#FF6B00] hover:bg-[#e05e00] text-white font-bold uppercase rounded-lg transition-colors shadow-lg"
               >
                 Publish Special Offer
               </button>

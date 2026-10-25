@@ -83,14 +83,24 @@ export default function LightboxModal({ image, allImages, onClose, onSelect }: L
         onClick={(e) => e.stopPropagation()}
         className="relative max-w-5xl w-full max-h-[85vh] flex flex-col items-center"
       >
-        <div className="relative w-full h-[60vh] sm:h-[70vh] rounded-lg overflow-hidden border border-zinc-800 shadow-2xl">
-          <Image
-            src={image.imageUrl}
-            alt={image.caption}
-            fill
-            className="object-contain"
-            priority
-          />
+        <div className="relative w-full h-[60vh] sm:h-[70vh] rounded-lg overflow-hidden border border-zinc-800 shadow-2xl bg-black flex items-center justify-center">
+          {image.mediaType === "video" || image.imageUrl.startsWith("data:video") || image.imageUrl.endsWith(".mp4") ? (
+            <video
+              src={image.imageUrl}
+              controls
+              autoPlay
+              playsInline
+              className="w-full h-full object-contain"
+            />
+          ) : (
+            <Image
+              src={image.imageUrl}
+              alt={image.caption}
+              fill
+              className="object-contain"
+              priority
+            />
+          )}
         </div>
 
         <div className="w-full mt-4 flex items-center justify-between text-sm px-2">

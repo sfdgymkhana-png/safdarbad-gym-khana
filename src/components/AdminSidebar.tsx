@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -26,6 +26,8 @@ import {
   Lock,
 } from "lucide-react";
 
+import { GymStore } from "@/lib/store";
+
 interface AdminSidebarProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
@@ -34,6 +36,12 @@ interface AdminSidebarProps {
 export default function AdminSidebar({ collapsed, onToggleCollapse }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const [logoUrl, setLogoUrl] = useState("/images/logo.png");
+
+  useEffect(() => {
+    const s = GymStore.getSettings();
+    if (s?.logoUrl) setLogoUrl(s.logoUrl);
+  }, []);
 
   const handleLogout = () => {
     sessionStorage.removeItem("sgk_admin_auth");
@@ -70,7 +78,7 @@ export default function AdminSidebar({ collapsed, onToggleCollapse }: AdminSideb
         <div className="h-16 flex items-center justify-between px-4 border-b border-zinc-800">
           <Link href="/admin/dashboard" className="flex items-center gap-3 overflow-hidden">
             <div className="relative w-9 h-9 rounded-full overflow-hidden border border-[#FF6B00] shrink-0">
-              <Image src="/images/logo.png" alt="Logo" fill className="object-cover" />
+              <Image src={logoUrl} alt="Logo" fill className="object-cover" />
             </div>
             {!collapsed && (
               <div className="truncate">

@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { GymStore } from "@/lib/store";
 import { SiteSettings, AdmissionApplication } from "@/lib/types";
 import { formatPKR } from "@/lib/utils";
+import { compressAndReadFile } from "@/lib/imageUtils";
 import confetti from "canvas-confetti";
 import {
   CheckCircle2,
-  Clock,
   ArrowRight,
   Shield,
   Tag,
@@ -18,6 +19,11 @@ import {
   Copy,
   MessageSquare,
   Sparkles,
+  Upload,
+  Camera,
+  Trash2,
+  RefreshCw,
+  User,
 } from "lucide-react";
 
 export default function AdmissionPage() {
@@ -29,11 +35,17 @@ export default function AdmissionPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [requestedStartDate, setRequestedStartDate] = useState("2026-10-25");
   const [requestedMonth, setRequestedMonth] = useState("October 2026");
+  const [isNewMember, setIsNewMember] = useState(true);
   const [couponCode, setCouponCode] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [notes, setNotes] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
+
+  // Photo Upload State
+  const [photoUrl, setPhotoUrl] = useState<string>("");
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,8 +57,34 @@ export default function AdmissionPage() {
     setRequestedStartDate(new Date().toISOString().split("T")[0]);
   }, []);
 
-  const basePrice = settings.standardMonthlyFee || 2500;
+  const admissionFee = settings.standardAdmissionFee ?? 3000;
+  const monthlyCharge = settings.standardMonthlyFee ?? 2500;
+  const basePrice = isNewMember ? admissionFee + monthlyCharge : monthlyCharge;
   const finalPrice = Math.max(0, basePrice - discountAmount);
+
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setError(null);
+    setUploadingPhoto(true);
+    try {
+      const dataUrl = await compressAndReadFile(file, 800, 800, 0.85);
+      setPhotoUrl(dataUrl);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to process photo.";
+      setError(msg);
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoUrl("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,8 +144,14 @@ export default function AdmissionPage() {
         fullName: fullName.trim(),
         email: email.trim(),
         phone: phone.trim(),
+        photoUrl: photoUrl || undefined,
+        isNewAdmission: isNewMember,
+        admissionFee: isNewMember ? admissionFee : 0,
+        monthlyFee: monthlyCharge,
         requestedPlanId: "PLAN-MONTHLY",
-        requestedPlanName: "Standard Monthly Membership",
+        requestedPlanName: isNewMember
+          ? "New Member Admission (Admission + 1st Month)"
+          : "Monthly Membership Renewal",
         requestedStartDate,
         requestedMonth,
         couponCode: couponApplied ? couponCode.toUpperCase() : undefined,
@@ -154,7 +198,7 @@ export default function AdmissionPage() {
                 Gym Admission Application
               </h1>
               <p className="text-xs sm:text-sm text-zinc-400 max-w-lg mx-auto">
-                Apply online for membership at Safdarbad Gym Khan’a. You can complete your registration right from home without visiting the gym first.
+                Apply online for membership at Safdarbad Gym Khan’a. You can complete your registration and photo upload right from home.
               </p>
             </div>
 
@@ -168,10 +212,76 @@ export default function AdmissionPage() {
             {/* Application Form Card */}
             <div className="bg-[#181818] border border-zinc-800 rounded-2xl p-6 sm:p-10 shadow-2xl">
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Section 1: Personal Info */}
-                <div className="space-y-4">
+                {/* Section 1: Member Photo Upload */}
+                <div className="space-y-3">
+                  <h3 className="font-heading text-lg font-bold text-[#FFC857] border-b border-zinc-800 pb-2 flex items-center justify-between">
+                    <span>1. Member Profile Photo</span>
+                    <span className="text-xs font-normal text-zinc-400">Direct Upload (Optional)</span>
+                  </h3>
+
+                  <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-[#121212] border border-zinc-800 rounded-xl">
+                    <div className="relative w-28 h-28 rounded-2xl overflow-hidden border-2 border-dashed border-zinc-700 bg-zinc-900 flex items-center justify-center shrink-0 shadow-inner group">
+                      {photoUrl ? (
+                        <Image
+                          src={photoUrl}
+                          alt="Member Photo Preview"
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="text-center p-2 text-zinc-500">
+                          <User className="w-10 h-10 mx-auto text-zinc-600 mb-1" />
+                          <span className="text-[10px] block">No Photo</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 text-center sm:text-left flex-1">
+                      <h4 className="text-sm font-semibold text-white">
+                        {photoUrl ? "Member Photo Attached" : "Upload Your Face / Passport Photo"}
+                      </h4>
+                      <p className="text-xs text-zinc-400">
+                        Upload directly from your phone gallery or computer. JPG, PNG, or WEBP supported.
+                      </p>
+
+                      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          accept="image/*"
+                          onChange={handlePhotoSelect}
+                          className="hidden"
+                          id="admission-photo-input"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploadingPhoto}
+                          className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{photoUrl ? "Change Photo" : "Upload New Image"}</span>
+                        </button>
+
+                        {photoUrl && (
+                          <button
+                            type="button"
+                            onClick={handleRemovePhoto}
+                            className="px-3 py-2 bg-zinc-800 hover:bg-red-950/40 text-zinc-300 hover:text-red-400 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors border border-zinc-700"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Remove</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 2: Personal Info */}
+                <div className="space-y-4 pt-2">
                   <h3 className="font-heading text-lg font-bold text-[#FFC857] border-b border-zinc-800 pb-2">
-                    1. Personal Information
+                    2. Personal Information
                   </h3>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -219,10 +329,10 @@ export default function AdmissionPage() {
                   </div>
                 </div>
 
-                {/* Section 2: Account Security */}
+                {/* Section 3: Account Security */}
                 <div className="space-y-4 pt-2">
                   <h3 className="font-heading text-lg font-bold text-[#FFC857] border-b border-zinc-800 pb-2">
-                    2. Portal Account Login Password
+                    3. Portal Account Password
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -254,22 +364,56 @@ export default function AdmissionPage() {
                   </div>
                 </div>
 
-                {/* Section 3: Membership Details */}
+                {/* Section 4: Membership Fee & Plan */}
                 <div className="space-y-4 pt-2">
                   <h3 className="font-heading text-lg font-bold text-[#FFC857] border-b border-zinc-800 pb-2">
-                    3. Membership Details
+                    4. Admission & Membership Fee Breakdown
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-zinc-300 mb-1">
-                        Membership Plan
-                      </label>
-                      <div className="p-3 bg-[#121212] border border-zinc-700 rounded-lg flex items-center justify-between text-sm">
-                        <span className="font-medium text-white">Standard Monthly Membership</span>
-                        <span className="text-[#FF6B00] font-bold">{formatPKR(basePrice)}</span>
-                      </div>
-                    </div>
 
+                  {/* Enrollment Type Toggle */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsNewMember(true)}
+                      className={`p-4 rounded-xl border text-left transition-all ${
+                        isNewMember
+                          ? "bg-[#FF6B00]/15 border-[#FF6B00] text-white shadow-lg shadow-[#FF6B00]/10"
+                          : "bg-[#141414] border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-sm text-white">New Member Admission</span>
+                        <span className="px-2 py-0.5 rounded bg-[#FF6B00] text-[10px] font-extrabold text-white">
+                          NEW
+                        </span>
+                      </div>
+                      <p className="text-xs text-zinc-300">
+                        Admission Fee: <strong className="text-white">{formatPKR(admissionFee)}</strong> + Monthly Charge: <strong className="text-white">{formatPKR(monthlyCharge)}</strong>
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsNewMember(false)}
+                      className={`p-4 rounded-xl border text-left transition-all ${
+                        !isNewMember
+                          ? "bg-[#FF6B00]/15 border-[#FF6B00] text-white shadow-lg shadow-[#FF6B00]/10"
+                          : "bg-[#141414] border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-sm text-white">Monthly Renewal</span>
+                        <span className="px-2 py-0.5 rounded bg-zinc-700 text-[10px] font-semibold text-zinc-300">
+                          EXISTING
+                        </span>
+                      </div>
+                      <p className="text-xs text-zinc-300">
+                        Monthly Charge only: <strong className="text-white">{formatPKR(monthlyCharge)}</strong> (No admission fee)
+                      </p>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                     <div>
                       <label className="block text-xs font-semibold text-zinc-300 mb-1">
                         Requested Start Date
@@ -278,6 +422,19 @@ export default function AdmissionPage() {
                         type="date"
                         value={requestedStartDate}
                         onChange={(e) => setRequestedStartDate(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-[#121212] border border-zinc-700 rounded-lg text-sm text-white focus:outline-none focus:border-[#FF6B00]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-zinc-300 mb-1">
+                        Requested Month
+                      </label>
+                      <input
+                        type="text"
+                        value={requestedMonth}
+                        onChange={(e) => setRequestedMonth(e.target.value)}
+                        placeholder="e.g. October 2026"
                         className="w-full px-4 py-2.5 bg-[#121212] border border-zinc-700 rounded-lg text-sm text-white focus:outline-none focus:border-[#FF6B00]"
                       />
                     </div>
@@ -320,30 +477,44 @@ export default function AdmissionPage() {
                       rows={2}
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      placeholder="e.g. Interested in strength training and weight loss..."
+                      placeholder="e.g. Weight training focus, beginner lifting guidance..."
                       className="w-full px-4 py-2 bg-[#121212] border border-zinc-700 rounded-lg text-sm text-white focus:outline-none"
                     />
                   </div>
                 </div>
 
-                {/* Price Summary Strip */}
-                <div className="p-4 bg-[#141414] border border-zinc-800 rounded-xl space-y-2 text-xs">
-                  <div className="flex justify-between text-zinc-400">
-                    <span>Base Monthly Membership:</span>
-                    <span>{formatPKR(basePrice)}</span>
+                {/* Price Summary Breakdown Strip */}
+                <div className="p-5 bg-[#141414] border border-zinc-800 rounded-xl space-y-2.5 text-xs">
+                  <div className="font-semibold text-zinc-300 pb-1 border-b border-zinc-800">
+                    Payment Breakdown:
                   </div>
+
+                  {isNewMember && (
+                    <div className="flex justify-between text-zinc-300">
+                      <span>Admission / Registration Fee (New Member):</span>
+                      <span className="font-semibold text-white">{formatPKR(admissionFee)}</span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between text-zinc-300">
+                    <span>Monthly Membership Charge:</span>
+                    <span className="font-semibold text-white">{formatPKR(monthlyCharge)}</span>
+                  </div>
+
                   {discountAmount > 0 && (
                     <div className="flex justify-between text-emerald-400">
-                      <span>Discount Applied:</span>
+                      <span>Discount Coupon Applied:</span>
                       <span>- {formatPKR(discountAmount)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-base font-bold text-white pt-2 border-t border-zinc-800">
-                    <span>Total Fee Payable:</span>
-                    <span className="text-[#FF6B00]">{formatPKR(finalPrice)}</span>
+
+                  <div className="flex justify-between text-base font-bold text-white pt-2.5 border-t border-zinc-800">
+                    <span>Total Amount Payable:</span>
+                    <span className="text-[#FF6B00] text-lg font-heading">{formatPKR(finalPrice)}</span>
                   </div>
+
                   <p className="text-[11px] text-zinc-500 pt-1">
-                    * Fee is payable offline at the gym counter (Cash/Transfer) upon admin verification.
+                    * Fee is payable offline at gym counter (Cash or EasyPaisa/JazzCash) upon admission review.
                   </p>
                 </div>
 
@@ -388,24 +559,43 @@ export default function AdmissionPage() {
                 Application Received!
               </h2>
               <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto">
-                Thank you for applying to Safdarbad Gym Khan’a, <strong>{submittedApplication.fullName}</strong>. Your application has been logged into our management system.
+                Thank you for applying to Safdarbad Gym Khan’a, <strong>{submittedApplication.fullName}</strong>. Your admission has been registered.
               </p>
             </div>
 
-            {/* Application ID Card */}
-            <div className="max-w-md mx-auto p-5 bg-[#121212] border border-zinc-700 rounded-xl space-y-3 text-left">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-zinc-400">Application Number</span>
-                <button
-                  onClick={handleCopyId}
-                  className="flex items-center gap-1.5 text-xs text-[#FF6B00] hover:underline"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>{copied ? "Copied!" : "Copy"}</span>
-                </button>
-              </div>
-              <div className="font-heading text-2xl font-bold text-white tracking-widest">
-                {submittedApplication.applicationId}
+            {/* Application ID & Photo Summary Card */}
+            <div className="max-w-md mx-auto p-5 bg-[#121212] border border-zinc-700 rounded-xl space-y-4 text-left">
+              <div className="flex items-center gap-4">
+                {submittedApplication.photoUrl ? (
+                  <div className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-[#FF6B00] shrink-0">
+                    <Image
+                      src={submittedApplication.photoUrl}
+                      alt={submittedApplication.fullName}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0 text-zinc-500">
+                    <User className="w-8 h-8" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-zinc-400">Application Number</span>
+                    <button
+                      onClick={handleCopyId}
+                      className="flex items-center gap-1.5 text-xs text-[#FF6B00] hover:underline"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>{copied ? "Copied!" : "Copy"}</span>
+                    </button>
+                  </div>
+                  <div className="font-heading text-xl font-bold text-white tracking-widest truncate">
+                    {submittedApplication.applicationId}
+                  </div>
+                  <span className="text-xs text-zinc-400 block">{submittedApplication.fullName}</span>
+                </div>
               </div>
 
               <div className="pt-2 border-t border-zinc-800 grid grid-cols-2 gap-2 text-xs">
@@ -422,15 +612,21 @@ export default function AdmissionPage() {
                   </span>
                 </div>
                 <div>
-                  <span className="text-zinc-500 block">Amount Payable:</span>
-                  <span className="font-bold text-white mt-0.5">
-                    {formatPKR(submittedApplication.finalPrice)}
+                  <span className="text-zinc-500 block">Admission Fee:</span>
+                  <span className="font-semibold text-white mt-0.5 block">
+                    {formatPKR(submittedApplication.admissionFee ?? 3000)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-zinc-500 block">Requested Date:</span>
-                  <span className="text-zinc-300 mt-0.5">
-                    {submittedApplication.requestedStartDate}
+                  <span className="text-zinc-500 block">Monthly Charge:</span>
+                  <span className="font-semibold text-white mt-0.5 block">
+                    {formatPKR(submittedApplication.monthlyFee ?? 2500)}
+                  </span>
+                </div>
+                <div className="col-span-2 pt-1 border-t border-zinc-800 flex justify-between">
+                  <span className="text-zinc-400 font-semibold">Total Payable:</span>
+                  <span className="text-[#FF6B00] font-bold text-sm">
+                    {formatPKR(submittedApplication.finalPrice)}
                   </span>
                 </div>
               </div>
@@ -443,7 +639,7 @@ export default function AdmissionPage() {
                 <li>Visit the gym reception at <strong>Fatima Center, Top Floor, Main Bazar</strong>.</li>
                 <li>Show your Application ID <strong>({submittedApplication.applicationId})</strong>.</li>
                 <li>Complete payment of <strong>{formatPKR(submittedApplication.finalPrice)}</strong> in cash or bank transfer.</li>
-                <li>The administrator will activate your account on the spot!</li>
+                <li>The administrator will activate your account and issue your membership card!</li>
               </ol>
             </div>
 

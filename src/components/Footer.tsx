@@ -25,7 +25,7 @@ export default function Footer() {
             <div className="flex items-center gap-3">
               <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-[#FF6B00]">
                 <Image
-                  src="/images/logo.png"
+                  src={settings?.logoUrl || "/images/logo.png"}
                   alt="Safdarbad Gym Khan'a"
                   fill
                   className="object-cover"

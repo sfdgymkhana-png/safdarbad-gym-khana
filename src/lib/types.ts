@@ -26,6 +26,10 @@ export interface AdmissionApplication {
   requestedPlanName: string;
   requestedStartDate: string;
   requestedMonth: string;
+  photoUrl?: string;
+  isNewAdmission?: boolean;
+  admissionFee?: number;
+  monthlyFee?: number;
   couponCode?: string;
   discountApplied?: number;
   finalPrice: number;
@@ -58,6 +62,9 @@ export interface Membership {
   customerPhone: string;
   planId: string;
   planName: string;
+  photoUrl?: string;
+  admissionFee?: number;
+  monthlyFee?: number;
   startDate: string;
   endDate: string;
   originalPrice: number;
@@ -135,6 +142,7 @@ export interface GymProgram {
 export interface GalleryMedia {
   imageId: string;
   imageUrl: string;
+  mediaType?: 'image' | 'video';
   caption: string;
   category: 'Interior' | 'Equipment' | 'Workout' | 'Atmosphere';
   displayOrder: number;
@@ -172,11 +180,17 @@ export interface SiteSettings {
   phone: string;
   whatsapp: string;
   email: string;
+  standardAdmissionFee: number;
   standardMonthlyFee: number;
   heroHeadline: string;
   heroSupportingText: string;
-  aboutText: string;
+  heroMediaType?: 'image' | 'video';
+  heroMediaUrl?: string;
   aboutHeading: string;
+  aboutText: string;
+  aboutMediaType?: 'image' | 'video';
+  aboutMediaUrl?: string;
+  logoUrl?: string;
   instagramUrl: string;
   tiktokUrl: string;
   facebookUrl?: string;

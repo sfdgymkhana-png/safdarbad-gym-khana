@@ -22,6 +22,7 @@ export const INITIAL_SETTINGS: SiteSettings = {
   phone: "+92 305 9422464",
   whatsapp: "+92 305 9422464",
   email: "sfdgymkhana@gmail.com",
+  standardAdmissionFee: 3000,
   standardMonthlyFee: 2500,
   heroHeadline: "BUILD YOUR STRENGTH. TRANSFORM YOURSELF.",
   heroSupportingText: "Your fitness journey starts here. Train harder, stay consistent, and become a stronger version of yourself at Safdarbad Gym Khan’a.",
@@ -42,11 +43,12 @@ export const INITIAL_PLANS: MembershipPlan[] = [
     basePrice: 2500,
     isActive: true,
     features: [
+      "New Admission Fee: PKR 3,000 (One-Time)",
+      "Monthly Membership: PKR 2,500 / Month",
       "Unlimited Gym Access (6 AM - 11 PM)",
       "Full Free Weights & Machine Access",
       "Locker & Changing Room Facilities",
       "Complimentary Fitness Guidance",
-      "No Hidden Registration Fee",
     ],
   },
   {
@@ -417,6 +419,33 @@ export const GymStore = {
       setItem(STORAGE_KEYS.MEMBERSHIPS, mems);
       GymStore.logAction(actor, "UPDATE_MEMBERSHIP", "membership", memId, "Membership details modified", JSON.stringify(updates));
     }
+  },
+  deleteMembership(memId: string, actor: string = "Admin"): void {
+    const mems = GymStore.getMemberships();
+    const member = mems.find((m) => m.membershipId === memId);
+    const updated = mems.filter((m) => m.membershipId !== memId);
+    setItem(STORAGE_KEYS.MEMBERSHIPS, updated);
+    GymStore.logAction(
+      actor,
+      "DELETE_MEMBER",
+      "membership",
+      memId,
+      "Member permanently removed from admin panel",
+      member ? `${member.customerName} (${member.customerPhone})` : memId
+    );
+    GymStore.createNotification(
+      "all",
+      "Member Removed",
+      `${member?.customerName || "Member"} (#${memId}) was permanently removed by ${actor}.`,
+      "membership"
+    );
+  },
+  deleteApplication(appId: string, actor: string = "Admin"): void {
+    const apps = GymStore.getApplications();
+    const app = apps.find((a) => a.applicationId === appId);
+    const updated = apps.filter((a) => a.applicationId !== appId);
+    setItem(STORAGE_KEYS.APPLICATIONS, updated);
+    GymStore.logAction(actor, "DELETE_APPLICATION", "admission", appId, "Admission application deleted", app?.fullName || appId);
   },
 
   getPayments(): PaymentTransaction[] {

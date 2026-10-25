@@ -28,6 +28,8 @@ import {
   Sparkles,
   ChevronRight,
   Tag,
+  Play,
+  Video,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -41,21 +43,23 @@ export default function HomePage() {
 
   useEffect(() => {
     setSettings(GymStore.getSettings());
-    setPlans(GymStore.getSettings() ? [
+    const currentSettings = GymStore.getSettings();
+    setPlans(currentSettings ? [
       {
         planId: "PLAN-MONTHLY",
         name: "Standard Monthly Membership",
         description: "Full access to all weight training facilities, dumbbells, barbells, and gym machines.",
         durationMonths: 1,
-        basePrice: GymStore.getSettings().standardMonthlyFee || 2500,
+        basePrice: currentSettings.standardMonthlyFee || 2500,
         isActive: true,
         features: [
+          `New Admission Fee: ${formatPKR(currentSettings.standardAdmissionFee || 3000)} (One-Time)`,
+          `Monthly Membership Fee: ${formatPKR(currentSettings.standardMonthlyFee || 2500)} / Month`,
           "Unlimited Daily Gym Access (6 AM - 11 PM)",
           "Full Access to Dumbbells & Power Cages",
           "Chest, Back, Leg & Shoulder Machines",
           "Changing Room & Locker Storage",
           "Beginner Lifting Guidance",
-          "Direct Consultation with Senior Lifters",
         ],
       },
     ] : []);
@@ -75,15 +79,26 @@ export default function HomePage() {
 
       {/* 1. HERO SECTION */}
       <section className="relative min-h-[92vh] flex items-center justify-center pt-24 pb-16 overflow-hidden">
-        {/* Background Image with Dark Vignette Overlay */}
+        {/* Background Image or Video with Dark Vignette Overlay */}
         <div className="absolute inset-0 z-0">
-          <Image
-            src="/images/gym-interior-1.jpg"
-            alt="Safdarbad Gym Khan'a Interior"
-            fill
-            priority
-            className="object-cover opacity-35 scale-105 transform hover:scale-100 transition-transform duration-1000 ease-out"
-          />
+          {settings?.heroMediaType === "video" && settings?.heroMediaUrl ? (
+            <video
+              src={settings.heroMediaUrl}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="w-full h-full object-cover opacity-40"
+            />
+          ) : (
+            <Image
+              src={settings?.heroMediaUrl || "/images/gym-interior-1.jpg"}
+              alt="Safdarbad Gym Khan'a Interior"
+              fill
+              priority
+              className="object-cover opacity-35 scale-105 transform hover:scale-100 transition-transform duration-1000 ease-out"
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#101010] via-[#101010]/70 to-black/80" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(16,16,16,0.85)_100%)]" />
         </div>
@@ -177,12 +192,23 @@ export default function HomePage() {
             {/* Visual Side */}
             <div className="relative group">
               <div className="relative h-[420px] rounded-2xl overflow-hidden border border-zinc-700 shadow-2xl">
-                <Image
-                  src="/images/gym-workout.jpg"
-                  alt="Workout Training at Safdarbad Gym Khan'a"
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-700"
-                />
+                {settings?.aboutMediaType === "video" && settings?.aboutMediaUrl ? (
+                  <video
+                    src={settings.aboutMediaUrl}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    src={settings?.aboutMediaUrl || "/images/gym-workout.jpg"}
+                    alt="Workout Training at Safdarbad Gym Khan'a"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                 <div className="absolute bottom-6 left-6 right-6">
                   <div className="inline-block px-3 py-1 bg-[#FF6B00] text-black font-heading font-bold text-xs uppercase tracking-wider rounded mb-2">
@@ -331,6 +357,9 @@ export default function HomePage() {
                     </span>
                     <span className="text-sm text-zinc-400">/ per month</span>
                   </div>
+                  <div className="inline-block mt-2 px-3 py-1 bg-zinc-800/80 border border-zinc-700/80 rounded-full text-xs text-zinc-300">
+                    New Admission Fee: <strong className="text-white">{formatPKR(settings?.standardAdmissionFee || 3000)}</strong> (One-Time)
+                  </div>
                 </div>
 
                 {/* Features List */}
@@ -458,13 +487,31 @@ export default function HomePage() {
                 onClick={() => setSelectedImage(item)}
                 className="group relative h-64 rounded-xl overflow-hidden cursor-pointer border border-zinc-800 hover:border-[#FF6B00] transition-all duration-300 shadow-lg"
               >
-                <Image
-                  src={item.imageUrl}
-                  alt={item.caption}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+                {item.mediaType === "video" || item.imageUrl.startsWith("data:video") || item.imageUrl.endsWith(".mp4") ? (
+                  <video
+                    src={item.imageUrl}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : (
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.caption}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+                
+                {(item.mediaType === "video" || item.imageUrl.startsWith("data:video") || item.imageUrl.endsWith(".mp4")) && (
+                  <div className="absolute top-3 right-3 p-1.5 rounded-full bg-black/70 text-[#FF6B00] border border-[#FF6B00]/40">
+                    <Play className="w-3.5 h-3.5 fill-[#FF6B00]" />
+                  </div>
+                )}
+
                 <div className="absolute bottom-4 left-4 right-4">
                   <span className="text-[10px] font-bold text-[#FFC857] uppercase tracking-widest block">
                     {item.category}
