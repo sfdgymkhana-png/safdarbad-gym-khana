@@ -14,7 +14,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
 
-  const isLoginPage = pathname === "/admin";
+  const isLoginPage = pathname === "/admin" || pathname === "/admin/";
 
   useEffect(() => {
     if (isLoginPage) {
@@ -25,11 +25,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       sessionStorage.getItem("sgk_admin_auth") ||
       localStorage.getItem("sgk_admin_auth");
     if (!auth) {
-      router.push("/admin");
+      window.location.href = "/admin/";
     } else {
       setAuthenticated(true);
     }
-  }, [pathname, isLoginPage, router]);
+  }, [pathname, isLoginPage]);
 
   useEffect(() => {
     setMobileOpen(false);

@@ -51,7 +51,7 @@ export default function AdminSidebar({
   const handleLogout = () => {
     sessionStorage.removeItem("sgk_admin_auth");
     localStorage.removeItem("sgk_admin_auth");
-    router.push("/admin");
+    window.location.href = "/admin/";
   };
 
   const navItems = [
@@ -109,7 +109,7 @@ export default function AdminSidebar({
         <nav className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-140px)]">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || pathname === `${item.href}/`;
             return (
               <Link
                 key={item.href}

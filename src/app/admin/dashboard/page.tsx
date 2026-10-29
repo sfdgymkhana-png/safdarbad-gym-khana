@@ -36,10 +36,14 @@ export default function AdminDashboardPage() {
   const [settings, setSettings] = useState<SiteSettings>(GymStore.getSettings());
 
   useEffect(() => {
-    setApplications(GymStore.getApplications());
-    setMemberships(GymStore.getMemberships());
-    setPayments(GymStore.getPayments());
-    setSettings(GymStore.getSettings());
+    const refreshData = () => {
+      setApplications(GymStore.getApplications());
+      setMemberships(GymStore.getMemberships());
+      setPayments(GymStore.getPayments());
+      setSettings(GymStore.getSettings());
+    };
+    refreshData();
+    return GymStore.subscribe(refreshData);
   }, []);
 
   // Calculated live metrics
