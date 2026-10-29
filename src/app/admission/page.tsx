@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { GymStore } from "@/lib/store";
 import { SiteSettings, AdmissionApplication } from "@/lib/types";
 import { formatPKR } from "@/lib/utils";
-import { compressAndReadFile } from "@/lib/imageUtils";
 import confetti from "canvas-confetti";
 import {
   CheckCircle2,
@@ -19,11 +17,8 @@ import {
   Copy,
   MessageSquare,
   Sparkles,
-  Upload,
-  Camera,
-  Trash2,
-  RefreshCw,
-  User,
+  Calendar,
+  UserCheck,
 } from "lucide-react";
 
 export default function AdmissionPage() {
@@ -42,11 +37,6 @@ export default function AdmissionPage() {
   const [notes, setNotes] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
 
-  // Photo Upload State
-  const [photoUrl, setPhotoUrl] = useState<string>("");
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submittedApplication, setSubmittedApplication] = useState<AdmissionApplication | null>(null);
@@ -55,36 +45,16 @@ export default function AdmissionPage() {
   useEffect(() => {
     setSettings(GymStore.getSettings());
     setRequestedStartDate(new Date().toISOString().split("T")[0]);
+
+    return GymStore.subscribe(() => {
+      setSettings(GymStore.getSettings());
+    });
   }, []);
 
   const admissionFee = settings.standardAdmissionFee ?? 3000;
   const monthlyCharge = settings.standardMonthlyFee ?? 2500;
   const basePrice = isNewMember ? admissionFee + monthlyCharge : monthlyCharge;
   const finalPrice = Math.max(0, basePrice - discountAmount);
-
-  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setError(null);
-    setUploadingPhoto(true);
-    try {
-      const dataUrl = await compressAndReadFile(file, 800, 800, 0.85);
-      setPhotoUrl(dataUrl);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to process photo.";
-      setError(msg);
-    } finally {
-      setUploadingPhoto(false);
-    }
-  };
-
-  const handleRemovePhoto = () => {
-    setPhotoUrl("");
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
 
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,7 +114,6 @@ export default function AdmissionPage() {
         fullName: fullName.trim(),
         email: email.trim(),
         phone: phone.trim(),
-        photoUrl: photoUrl || undefined,
         isNewAdmission: isNewMember,
         admissionFee: isNewMember ? admissionFee : 0,
         monthlyFee: monthlyCharge,
@@ -198,7 +167,7 @@ export default function AdmissionPage() {
                 Gym Admission Application
               </h1>
               <p className="text-xs sm:text-sm text-zinc-400 max-w-lg mx-auto">
-                Apply online for membership at Safdarbad Gym Khan’a. You can complete your registration and photo upload right from home.
+                Apply online for membership at Safdarbad Gym Khan’a. You can complete your registration right from home.
               </p>
             </div>
 
@@ -212,76 +181,10 @@ export default function AdmissionPage() {
             {/* Application Form Card */}
             <div className="bg-[#181818] border border-zinc-800 rounded-2xl p-4 sm:p-10 shadow-2xl">
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Section 1: Member Photo Upload */}
-                <div className="space-y-3">
-                  <h3 className="font-heading text-lg font-bold text-[#FFC857] border-b border-zinc-800 pb-2 flex items-center justify-between">
-                    <span>1. Member Profile Photo</span>
-                    <span className="text-xs font-normal text-zinc-400">Direct Upload (Optional)</span>
-                  </h3>
-
-                  <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-[#121212] border border-zinc-800 rounded-xl">
-                    <div className="relative w-28 h-28 rounded-2xl overflow-hidden border-2 border-dashed border-zinc-700 bg-zinc-900 flex items-center justify-center shrink-0 shadow-inner group">
-                      {photoUrl ? (
-                        <Image
-                          src={photoUrl}
-                          alt="Member Photo Preview"
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="text-center p-2 text-zinc-500">
-                          <User className="w-10 h-10 mx-auto text-zinc-600 mb-1" />
-                          <span className="text-[10px] block">No Photo</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-2 text-center sm:text-left flex-1">
-                      <h4 className="text-sm font-semibold text-white">
-                        {photoUrl ? "Member Photo Attached" : "Upload Your Face / Passport Photo"}
-                      </h4>
-                      <p className="text-xs text-zinc-400">
-                        Upload directly from your phone gallery or computer. JPG, PNG, or WEBP supported.
-                      </p>
-
-                      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          accept="image/*"
-                          onChange={handlePhotoSelect}
-                          className="hidden"
-                          id="admission-photo-input"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          disabled={uploadingPhoto}
-                          className="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow"
-                        >
-                          <Upload className="w-3.5 h-3.5" />
-                          <span>{photoUrl ? "Change Photo" : "Upload New Image"}</span>
-                        </button>
-
-                        {photoUrl && (
-                          <button
-                            type="button"
-                            onClick={handleRemovePhoto}
-                            className="px-3 py-2 bg-zinc-800 hover:bg-red-950/40 text-zinc-300 hover:text-red-400 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors border border-zinc-700"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span>Remove</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section 2: Personal Info */}
-                <div className="space-y-4 pt-2">
+                {/* Section 1: Personal Info */}
+                <div className="space-y-4">
                   <h3 className="font-heading text-lg font-bold text-[#FFC857] border-b border-zinc-800 pb-2">
-                    2. Personal Information
+                    1. Personal Information
                   </h3>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -329,10 +232,10 @@ export default function AdmissionPage() {
                   </div>
                 </div>
 
-                {/* Section 3: Account Security */}
+                {/* Section 2: Account Security */}
                 <div className="space-y-4 pt-2">
                   <h3 className="font-heading text-lg font-bold text-[#FFC857] border-b border-zinc-800 pb-2">
-                    3. Portal Account Password
+                    2. Portal Account Password
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -364,32 +267,32 @@ export default function AdmissionPage() {
                   </div>
                 </div>
 
-                {/* Section 4: Membership Fee & Plan */}
+                {/* Section 3: Membership Details */}
                 <div className="space-y-4 pt-2">
                   <h3 className="font-heading text-lg font-bold text-[#FFC857] border-b border-zinc-800 pb-2">
-                    4. Admission & Membership Fee Breakdown
+                    3. Membership Category & Start Date
                   </h3>
 
-                  {/* Enrollment Type Toggle */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setIsNewMember(true)}
                       className={`p-4 rounded-xl border text-left transition-all ${
                         isNewMember
-                          ? "bg-[#FF6B00]/15 border-[#FF6B00] text-white shadow-lg shadow-[#FF6B00]/10"
-                          : "bg-[#141414] border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                          ? "bg-[#FF6B00]/10 border-[#FF6B00] shadow-md shadow-[#FF6B00]/20"
+                          : "bg-[#121212] border-zinc-800 hover:border-zinc-700"
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold text-sm text-white">New Member Admission</span>
-                        <span className="px-2 py-0.5 rounded bg-[#FF6B00] text-[10px] font-extrabold text-white">
-                          NEW
-                        </span>
+                        <span className="font-bold text-white text-sm">New Admission</span>
+                        {isNewMember && <CheckCircle2 className="w-4 h-4 text-[#FF6B00]" />}
                       </div>
-                      <p className="text-xs text-zinc-300">
-                        Admission Fee: <strong className="text-white">{formatPKR(admissionFee)}</strong> + Monthly Charge: <strong className="text-white">{formatPKR(monthlyCharge)}</strong>
+                      <p className="text-xs text-zinc-400">
+                        First-time joiner. Includes one-time admission fee + 1st month.
                       </p>
+                      <div className="mt-2 text-xs font-semibold text-[#FFC857]">
+                        {formatPKR(admissionFee)} Admission + {formatPKR(monthlyCharge)} / mo
+                      </div>
                     </button>
 
                     <button
@@ -397,38 +300,39 @@ export default function AdmissionPage() {
                       onClick={() => setIsNewMember(false)}
                       className={`p-4 rounded-xl border text-left transition-all ${
                         !isNewMember
-                          ? "bg-[#FF6B00]/15 border-[#FF6B00] text-white shadow-lg shadow-[#FF6B00]/10"
-                          : "bg-[#141414] border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                          ? "bg-[#FF6B00]/10 border-[#FF6B00] shadow-md shadow-[#FF6B00]/20"
+                          : "bg-[#121212] border-zinc-800 hover:border-zinc-700"
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold text-sm text-white">Monthly Renewal</span>
-                        <span className="px-2 py-0.5 rounded bg-zinc-700 text-[10px] font-semibold text-zinc-300">
-                          EXISTING
-                        </span>
+                        <span className="font-bold text-white text-sm">Monthly Renewal</span>
+                        {!isNewMember && <CheckCircle2 className="w-4 h-4 text-[#FF6B00]" />}
                       </div>
-                      <p className="text-xs text-zinc-300">
-                        Monthly Charge only: <strong className="text-white">{formatPKR(monthlyCharge)}</strong> (No admission fee)
+                      <p className="text-xs text-zinc-400">
+                        Existing member renewing monthly fee. No admission fee.
                       </p>
+                      <div className="mt-2 text-xs font-semibold text-[#FFC857]">
+                        {formatPKR(monthlyCharge)} / month only
+                      </div>
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                     <div>
                       <label className="block text-xs font-semibold text-zinc-300 mb-1">
                         Requested Start Date
                       </label>
                       <input
                         type="date"
+                        required
                         value={requestedStartDate}
                         onChange={(e) => setRequestedStartDate(e.target.value)}
                         className="w-full px-4 py-2.5 bg-[#121212] border border-zinc-700 rounded-lg text-sm text-white focus:outline-none focus:border-[#FF6B00]"
                       />
                     </div>
-
                     <div>
                       <label className="block text-xs font-semibold text-zinc-300 mb-1">
-                        Requested Month
+                        Enrollment Month Label
                       </label>
                       <input
                         type="text"
@@ -439,11 +343,17 @@ export default function AdmissionPage() {
                       />
                     </div>
                   </div>
+                </div>
 
-                  {/* Coupon Box */}
-                  <div className="pt-2">
+                {/* Section 4: Coupon & Notes */}
+                <div className="space-y-4 pt-2">
+                  <h3 className="font-heading text-lg font-bold text-[#FFC857] border-b border-zinc-800 pb-2">
+                    4. Promotional Coupon & Notes
+                  </h3>
+
+                  <div>
                     <label className="block text-xs font-semibold text-zinc-300 mb-1">
-                      Promotional Coupon Code (Optional)
+                      Promotional Discount Coupon (Optional)
                     </label>
                     <div className="flex gap-2">
                       <input
@@ -563,23 +473,12 @@ export default function AdmissionPage() {
               </p>
             </div>
 
-            {/* Application ID & Photo Summary Card */}
+            {/* Application ID Summary Card */}
             <div className="max-w-md mx-auto p-5 bg-[#121212] border border-zinc-700 rounded-xl space-y-4 text-left">
               <div className="flex items-center gap-4">
-                {submittedApplication.photoUrl ? (
-                  <div className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-[#FF6B00] shrink-0">
-                    <Image
-                      src={submittedApplication.photoUrl}
-                      alt={submittedApplication.fullName}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-16 h-16 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0 text-zinc-500">
-                    <User className="w-8 h-8" />
-                  </div>
-                )}
+                <div className="w-14 h-14 rounded-xl bg-[#FF6B00]/20 border border-[#FF6B00]/50 flex items-center justify-center shrink-0 text-[#FF6B00]">
+                  <UserCheck className="w-7 h-7" />
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-zinc-400">Application Number</span>
@@ -651,17 +550,17 @@ export default function AdmissionPage() {
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-6 py-3 bg-[#25D366] hover:bg-[#20ba59] text-black font-bold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg"
               >
-                <MessageSquare className="w-4 h-4" />
-                <span>Notify Gym on WhatsApp</span>
+                <MessageSquare className="w-4 h-4 fill-black" />
+                <span>Message Gym on WhatsApp</span>
               </a>
 
               <Link
-                href="/login"
-                className="w-full sm:w-auto px-6 py-3 bg-[#222222] hover:bg-[#2c2c2c] text-white border border-zinc-700 font-bold text-xs uppercase tracking-wider rounded-lg flex items-center justify-center gap-2"
+                href="/account"
+                className="w-full sm:w-auto px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-colors"
               >
-                <span>Go to Member Login</span>
+                <span>Go to Member Account</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
