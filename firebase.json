@@ -2,12 +2,7 @@
   "hosting": {
     "public": "out",
     "cleanUrls": true,
-    "trailingSlash": true,
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ]
+    "trailingSlash": true
   },
   "firestore": {
     "rules": "firestore.rules"
