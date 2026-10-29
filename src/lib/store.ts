@@ -41,6 +41,9 @@ export const INITIAL_SETTINGS: SiteSettings = {
   tiktokUrl: "",
   facebookUrl: "",
   openingHours: "Mon - Sat: 6:00 AM - 11:00 PM | Sunday: Closed",
+  announcementEnabled: true,
+  announcementText: "🎉 Grand Opening on 30 October 2026! Early admissions are now open — Register online today!",
+  announcementLink: "/admission",
 };
 
 export const INITIAL_PLANS: MembershipPlan[] = [

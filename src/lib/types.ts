@@ -196,4 +196,7 @@ export interface SiteSettings {
   facebookUrl?: string;
   youtubeUrl?: string;
   openingHours?: string;
+  announcementEnabled?: boolean;
+  announcementText?: string;
+  announcementLink?: string;
 }

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Menu, X, Phone, User, ShieldCheck } from "lucide-react";
 import { GymStore } from "@/lib/store";
 import { SiteSettings } from "@/lib/types";
+import AnnouncementBar from "@/components/AnnouncementBar";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -32,14 +33,16 @@ export default function Navbar() {
   ];
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-[#101010]/95 backdrop-blur-md shadow-lg shadow-black/40 border-b border-[#262626] py-2.5"
-          : "bg-gradient-to-b from-black/80 via-black/40 to-transparent py-4"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="fixed top-0 left-0 right-0 z-50">
+      <AnnouncementBar />
+      <div
+        className={`transition-all duration-300 ${
+          scrolled
+            ? "bg-[#101010]/95 backdrop-blur-md shadow-lg shadow-black/40 border-b border-[#262626] py-2.5"
+            : "bg-gradient-to-b from-black/90 via-black/50 to-transparent py-3 sm:py-4"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Brand Logo & Name */}
           <Link href="/" className="flex items-center gap-3 group">
@@ -110,6 +113,7 @@ export default function Navbar() {
             </button>
           </div>
         </div>
+      </div>
       </div>
 
       {/* Mobile & Tablet Drawer */}

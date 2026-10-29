@@ -155,7 +155,7 @@ export default function AdmissionPage() {
     <div className="bg-[#101010] text-white min-h-screen">
       <Navbar />
 
-      <main className="pt-24 sm:pt-28 pb-16 sm:pb-20 px-3.5 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+      <main className="pt-32 sm:pt-36 pb-16 sm:pb-20 px-3.5 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         {!submittedApplication ? (
           <div className="space-y-6 sm:space-y-8">
             {/* Header */}

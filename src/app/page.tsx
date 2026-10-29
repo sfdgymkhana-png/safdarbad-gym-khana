@@ -83,7 +83,7 @@ export default function HomePage() {
       <Navbar />
 
       {/* 1. HERO SECTION */}
-      <section className="relative min-h-[92vh] flex items-center justify-center pt-24 pb-16 overflow-hidden">
+      <section className="relative min-h-[92vh] flex items-center justify-center pt-32 sm:pt-36 pb-16 overflow-hidden">
         {/* Background Image or Video with Dark Vignette Overlay */}
         <div className="absolute inset-0 z-0">
           {settings?.heroMediaType === "video" && settings?.heroMediaUrl ? (

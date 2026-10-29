@@ -449,6 +449,50 @@ export default function AdminContentPage() {
           </div>
         </div>
 
+        {/* Section 6: Top Announcement Bar */}
+        <div className="space-y-4 pt-2">
+          <h3 className="font-heading text-base font-bold text-[#FFC857] border-b border-zinc-800 pb-2 flex items-center justify-between">
+            <span>6. Top Announcement Banner</span>
+            <span className="text-xs text-zinc-400 font-normal">Displays at the very top of public pages</span>
+          </h3>
+          <div className="space-y-3 p-4 bg-[#121212] border border-zinc-800 rounded-xl">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="announcementEnabled"
+                checked={settings.announcementEnabled ?? true}
+                onChange={(e) =>
+                  setSettings({ ...settings, announcementEnabled: e.target.checked })
+                }
+                className="w-4 h-4 accent-[#FF6B00] rounded"
+              />
+              <label htmlFor="announcementEnabled" className="text-white font-semibold cursor-pointer">
+                Enable Top Announcement Bar
+              </label>
+            </div>
+
+            <div>
+              <label className="block text-zinc-300 font-semibold mb-1">Announcement Message</label>
+              <input
+                type="text"
+                value={settings.announcementText ?? "🎉 Grand Opening on 30 October 2026! Early admissions are now open — Register online today!"}
+                onChange={(e) => setSettings({ ...settings, announcementText: e.target.value })}
+                className="w-full px-3 py-2 bg-[#181818] border border-zinc-700 rounded-lg text-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-zinc-300 font-semibold mb-1">Target Link (Optional)</label>
+              <input
+                type="text"
+                value={settings.announcementLink || "/admission"}
+                onChange={(e) => setSettings({ ...settings, announcementLink: e.target.value })}
+                className="w-full px-3 py-2 bg-[#181818] border border-zinc-700 rounded-lg text-white font-mono text-xs"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Save Bar */}
         <div className="pt-4 border-t border-zinc-800 flex items-center justify-between">
           <span className="text-zinc-500 text-xs">
