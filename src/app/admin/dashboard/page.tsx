@@ -27,6 +27,7 @@ import {
   ShieldAlert,
   Sparkles,
   CheckCircle2,
+  RefreshCw,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
@@ -34,6 +35,7 @@ export default function AdminDashboardPage() {
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [payments, setPayments] = useState<PaymentTransaction[]>([]);
   const [settings, setSettings] = useState<SiteSettings>(GymStore.getSettings());
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     const refreshData = () => {
@@ -45,6 +47,20 @@ export default function AdminDashboardPage() {
     refreshData();
     return GymStore.subscribe(refreshData);
   }, []);
+
+  const handleResetMonthlyStatus = () => {
+    const confirmed = window.confirm(
+      "🔄 Start New Monthly Billing Cycle?\n\nThis will reset payment status to 'Unpaid' for all active members so you can track fee collections for the new month.\n\nDo you want to proceed?"
+    );
+    if (!confirmed) return;
+
+    setResetting(true);
+    setTimeout(() => {
+      const res = GymStore.resetMonthlyPaymentStatuses("Administrator");
+      setResetting(false);
+      alert(`✅ Monthly cycle reset complete!\n\n${res.count} active memberships marked as 'Unpaid' with monthly balance due.`);
+    }, 400);
+  };
 
   // Calculated live metrics
   const totalMembers = memberships.length;
@@ -80,6 +96,16 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={handleResetMonthlyStatus}
+            disabled={resetting}
+            className="flex-1 sm:flex-none px-4 py-2 bg-[#1C1C1C] hover:bg-[#2A2A2A] text-[#FFC857] border border-amber-500/40 hover:border-amber-500 text-xs font-bold uppercase tracking-wider rounded-lg shadow-md flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
+            title="Reset active members' payment status to Unpaid for the new billing month"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${resetting ? "animate-spin" : ""}`} />
+            <span>{resetting ? "Resetting..." : "Reset For New Month"}</span>
+          </button>
           <Link
             href="/admin/admissions"
             className="flex-1 sm:flex-none px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md transition-colors flex items-center justify-center gap-1.5"

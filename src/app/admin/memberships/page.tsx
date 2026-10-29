@@ -25,13 +25,31 @@ export default function AdminMembershipsPage() {
   const [tab, setTab] = useState<"all" | "expiring" | "expired">("all");
   const [search, setSearch] = useState("");
 
+  const [resetting, setResetting] = useState(false);
+
   const loadData = () => {
     setMemberships(GymStore.getMemberships());
   };
 
   useEffect(() => {
     loadData();
+    return GymStore.subscribe(loadData);
   }, []);
+
+  const handleResetMonthlyStatus = () => {
+    const confirmed = window.confirm(
+      "🔄 Start New Monthly Billing Cycle?\n\nThis will reset payment status to 'Unpaid' for all active members so you can track fee collections for the new month.\n\nDo you want to proceed?"
+    );
+    if (!confirmed) return;
+
+    setResetting(true);
+    setTimeout(() => {
+      const res = GymStore.resetMonthlyPaymentStatuses("Administrator");
+      setResetting(false);
+      alert(`✅ Monthly cycle reset complete!\n\n${res.count} active memberships marked as 'Unpaid' with monthly balance due.`);
+      loadData();
+    }, 400);
+  };
 
   const handleRenew = (m: Membership) => {
     const today = new Date().toISOString().split("T")[0];
@@ -74,13 +92,26 @@ export default function AdminMembershipsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-white tracking-wide">
-          Subscriptions & Expiration Lifecycle
-        </h1>
-        <p className="text-xs text-zinc-400 mt-0.5">
-          Monitor upcoming expirations, automated reminder eligibility, and process 1-click renewals.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="font-heading text-2xl sm:text-3xl font-extrabold text-white tracking-wide">
+            Subscriptions & Expiration Lifecycle
+          </h1>
+          <p className="text-xs text-zinc-400 mt-0.5">
+            Monitor upcoming expirations, automated reminder eligibility, and process 1-click renewals.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleResetMonthlyStatus}
+          disabled={resetting}
+          className="px-4 py-2 bg-[#1C1C1C] hover:bg-[#2A2A2A] text-[#FFC857] border border-amber-500/40 hover:border-amber-500 text-xs font-bold uppercase tracking-wider rounded-lg shadow-md flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 shrink-0"
+          title="Reset active members' payment status to Unpaid for the new billing month"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${resetting ? "animate-spin" : ""}`} />
+          <span>{resetting ? "Resetting..." : "Reset For New Month"}</span>
+        </button>
       </div>
 
       {/* Tabs */}

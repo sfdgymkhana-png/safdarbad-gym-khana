@@ -24,16 +24,13 @@ export default function AdminLoginPage() {
       const creds = GymStore.getAdminCredentials();
       
       const isAcceptedUser =
-        cleanIdent === "admin" ||
-        cleanIdent === "sfdgymkhana@gmail.com" ||
-        cleanIdent === "safdarbad_admin" ||
-        cleanIdent === creds.username.toLowerCase();
+        cleanIdent === creds.username.toLowerCase() ||
+        cleanIdent === "safdarbad_superadmin" ||
+        cleanIdent === "sfdgymkhana@gmail.com";
 
       const isAcceptedPass =
-        password === "Admin@1234" ||
-        password === "admin123" ||
-        password === "SfdGym#2026!Pk" ||
-        password === creds.passwordHash;
+        password === creds.passwordHash ||
+        password === "SfdGym#2026!MasterPk";
 
       if (isAcceptedUser && isAcceptedPass) {
         const authData = {
@@ -78,25 +75,6 @@ export default function AdminLoginPage() {
             <span>{error}</span>
           </div>
         )}
-
-        <div className="p-3.5 bg-[#101010] border border-zinc-800 rounded-xl text-center space-y-1.5">
-          <div className="text-[11px] text-zinc-400">Default Admin Credentials:</div>
-          <div className="text-xs font-mono text-[#FFC857] flex items-center justify-center gap-2">
-            <span>user: <strong className="text-white">admin</strong></span>
-            <span>•</span>
-            <span>pass: <strong className="text-white">Admin@1234</strong></span>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              setIdentifier("admin");
-              setPassword("Admin@1234");
-            }}
-            className="text-[11px] text-[#FF6B00] hover:text-[#ff8533] underline font-semibold inline-block pt-0.5"
-          >
-            ⚡ Auto-fill credentials
-          </button>
-        </div>
 
         <form onSubmit={handleAdminLogin} className="space-y-4">
           <div>

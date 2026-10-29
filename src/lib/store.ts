@@ -947,10 +947,15 @@ export const GymStore = {
   },
 
   getAdminCredentials(): { username: string; passwordHash: string } {
-    return getItem(STORAGE_KEYS.CREDENTIALS, {
-      username: "safdarbad_admin",
-      passwordHash: "SfdGym#2026!Pk",
-    });
+    const defaultCreds = {
+      username: "safdarbad_superadmin",
+      passwordHash: "SfdGym#2026!MasterPk",
+    };
+    const saved = getItem(STORAGE_KEYS.CREDENTIALS, defaultCreds);
+    if (!saved || saved.username === "safdarbad_admin" || saved.username === "admin") {
+      return defaultCreds;
+    }
+    return saved;
   },
   saveAdminCredentials(username: string, passwordHash: string, actor: string = "Admin"): void {
     const creds = { username, passwordHash };
@@ -967,5 +972,52 @@ export const GymStore = {
       "Changed administrator login credentials",
       `Username set to ${username}`
     );
+  },
+
+  resetMonthlyPaymentStatuses(actor: string = "Admin"): { count: number } {
+    const mems = GymStore.getMemberships();
+    let updatedCount = 0;
+    const standardFee = GymStore.getSettings().standardMonthlyFee || 2500;
+
+    const updatedMems = mems.map((m) => {
+      if (
+        m.membershipStatus === "Active" ||
+        m.membershipStatus === "Pending Approval" ||
+        m.membershipStatus === "Expiring Soon"
+      ) {
+        updatedCount++;
+        const updated: Membership = {
+          ...m,
+          paymentStatus: "Unpaid",
+          amountPaid: 0,
+          balanceDue: m.finalPrice || standardFee,
+          updatedAt: new Date().toISOString(),
+        };
+        safeFirestoreSet(doc(db, "memberships", m.membershipId), updated, { merge: true });
+        return updated;
+      }
+      return m;
+    });
+
+    setItem(STORAGE_KEYS.MEMBERSHIPS, updatedMems);
+    notifyStoreUpdated(STORAGE_KEYS.MEMBERSHIPS);
+
+    GymStore.logAction(
+      actor,
+      "RESET_MONTHLY_PAYMENTS",
+      "payment",
+      "ALL_ACTIVE_MEMBERSHIPS",
+      "Monthly billing cycle reset",
+      `Reset payment status to Unpaid for ${updatedCount} memberships for the new month.`
+    );
+
+    GymStore.createNotification(
+      "all",
+      "Monthly Billing Cycle Reset",
+      `Payment statuses have been reset for the new month (${updatedCount} active members marked unpaid).`,
+      "payment"
+    );
+
+    return { count: updatedCount };
   },
 };
