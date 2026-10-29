@@ -10,9 +10,18 @@ import {
   SystemNotification,
   AuditLogEntry,
   MembershipPlan,
-  UserProfile,
 } from "./types";
 import { generateCustomId, addMonthsSafely } from "./utils";
+import { db } from "./firebase";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  deleteDoc,
+  onSnapshot,
+} from "firebase/firestore";
 
 // Official initial business data
 export const INITIAL_SETTINGS: SiteSettings = {
@@ -28,8 +37,8 @@ export const INITIAL_SETTINGS: SiteSettings = {
   heroSupportingText: "Your fitness journey starts here. Train harder, stay consistent, and become a stronger version of yourself at Safdarbad Gym Khan’a.",
   aboutHeading: "MORE THAN A GYM. YOUR FITNESS JOURNEY.",
   aboutText: "Located at the heart of Safdarabad in Fatima Center, Safdarbad Gym Khan’a provides a dedicated, energetic environment tailored for muscle building, functional strength, and overall athletic discipline. Equipped with top-grade free weights, power cages, and workout stations, we empower every member to achieve their true physical potential.",
-  instagramUrl: "", // Blank until owner configures
-  tiktokUrl: "",    // Blank until owner configures
+  instagramUrl: "",
+  tiktokUrl: "",
   facebookUrl: "",
   openingHours: "Mon - Sat: 6:00 AM - 11:00 PM | Sunday: Closed",
 };
@@ -56,7 +65,7 @@ export const INITIAL_PLANS: MembershipPlan[] = [
     name: "3-Month Commitment Plan",
     description: "Ideal for committed lifters aiming for steady, measurable muscle and endurance growth.",
     durationMonths: 3,
-    basePrice: 7000, // Saves 500
+    basePrice: 7000,
     isActive: true,
     features: [
       "All Monthly Membership Benefits",
@@ -214,7 +223,6 @@ export const INITIAL_OFFERS: SpecialOffer[] = [
   },
 ];
 
-// Seed membership and admission applications to illustrate live functionality
 export const INITIAL_APPLICATIONS: AdmissionApplication[] = [
   {
     applicationId: "APP-10021",
@@ -326,7 +334,7 @@ export const INITIAL_AUDIT_LOGS: AuditLogEntry[] = [
   },
 ];
 
-// In-Memory / LocalStorage Layer for instantaneous client responsiveness
+// Storage keys for local cache
 const STORAGE_KEYS = {
   SETTINGS: "sgk_site_settings",
   APPLICATIONS: "sgk_applications",
@@ -338,6 +346,7 @@ const STORAGE_KEYS = {
   GALLERY: "sgk_gallery",
   NOTIFICATIONS: "sgk_notifications",
   AUDIT_LOGS: "sgk_audit_logs",
+  CREDENTIALS: "sgk_admin_credentials",
 };
 
 function getItem<T>(key: string, defaultValue: T): T {
@@ -359,19 +368,203 @@ function setItem<T>(key: string, value: T): void {
   }
 }
 
+function notifyStoreUpdated(key?: string) {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("sgk_store_updated", { detail: { key } }));
+  }
+}
+
+let syncInitialized = false;
+
 export const GymStore = {
+  subscribe(listener: () => void): () => void {
+    if (typeof window === "undefined") return () => {};
+    window.addEventListener("sgk_store_updated", listener);
+    return () => window.removeEventListener("sgk_store_updated", listener);
+  },
+
+  initFirestoreSync(): void {
+    if (typeof window === "undefined" || syncInitialized) return;
+    syncInitialized = true;
+
+    try {
+      // 1. Site Settings
+      onSnapshot(doc(db, "siteSettings", "config"), (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data() as SiteSettings;
+          setItem(STORAGE_KEYS.SETTINGS, data);
+          notifyStoreUpdated(STORAGE_KEYS.SETTINGS);
+        } else {
+          setDoc(doc(db, "siteSettings", "config"), INITIAL_SETTINGS).catch(console.error);
+        }
+      }, (err) => console.warn("Firestore settings sync error:", err));
+
+      // 2. Admin Credentials
+      onSnapshot(doc(db, "siteSettings", "adminCredentials"), (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data() as { username: string; passwordHash: string };
+          setItem(STORAGE_KEYS.CREDENTIALS, data);
+          notifyStoreUpdated(STORAGE_KEYS.CREDENTIALS);
+        }
+      }, (err) => console.warn("Firestore admin creds sync error:", err));
+
+      // 3. Admission Applications
+      onSnapshot(collection(db, "admissionApplications"), (snapshot) => {
+        if (!snapshot.empty) {
+          const apps: AdmissionApplication[] = [];
+          snapshot.forEach((d) => apps.push(d.data() as AdmissionApplication));
+          // Sort newest first
+          apps.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          setItem(STORAGE_KEYS.APPLICATIONS, apps);
+          notifyStoreUpdated(STORAGE_KEYS.APPLICATIONS);
+        } else {
+          // Seed initial applications if completely empty
+          INITIAL_APPLICATIONS.forEach((app) => {
+            setDoc(doc(db, "admissionApplications", app.applicationId), app).catch(console.error);
+          });
+        }
+      }, (err) => console.warn("Firestore applications sync error:", err));
+
+      // 4. Memberships
+      onSnapshot(collection(db, "memberships"), (snapshot) => {
+        if (!snapshot.empty) {
+          const mems: Membership[] = [];
+          snapshot.forEach((d) => mems.push(d.data() as Membership));
+          mems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          setItem(STORAGE_KEYS.MEMBERSHIPS, mems);
+          notifyStoreUpdated(STORAGE_KEYS.MEMBERSHIPS);
+        } else {
+          INITIAL_MEMBERSHIPS.forEach((m) => {
+            setDoc(doc(db, "memberships", m.membershipId), m).catch(console.error);
+          });
+        }
+      }, (err) => console.warn("Firestore memberships sync error:", err));
+
+      // 5. Payments
+      onSnapshot(collection(db, "payments"), (snapshot) => {
+        if (!snapshot.empty) {
+          const pays: PaymentTransaction[] = [];
+          snapshot.forEach((d) => pays.push(d.data() as PaymentTransaction));
+          pays.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          setItem(STORAGE_KEYS.PAYMENTS, pays);
+          notifyStoreUpdated(STORAGE_KEYS.PAYMENTS);
+        } else {
+          INITIAL_PAYMENTS.forEach((p) => {
+            setDoc(doc(db, "payments", p.paymentId), p).catch(console.error);
+          });
+        }
+      }, (err) => console.warn("Firestore payments sync error:", err));
+
+      // 6. Discounts
+      onSnapshot(collection(db, "discounts"), (snapshot) => {
+        if (!snapshot.empty) {
+          const discs: DiscountCoupon[] = [];
+          snapshot.forEach((d) => discs.push(d.data() as DiscountCoupon));
+          discs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          setItem(STORAGE_KEYS.DISCOUNTS, discs);
+          notifyStoreUpdated(STORAGE_KEYS.DISCOUNTS);
+        } else {
+          INITIAL_DISCOUNTS.forEach((d) => {
+            setDoc(doc(db, "discounts", d.discountId), d).catch(console.error);
+          });
+        }
+      }, (err) => console.warn("Firestore discounts sync error:", err));
+
+      // 7. Offers
+      onSnapshot(collection(db, "offers"), (snapshot) => {
+        if (!snapshot.empty) {
+          const offers: SpecialOffer[] = [];
+          snapshot.forEach((d) => offers.push(d.data() as SpecialOffer));
+          setItem(STORAGE_KEYS.OFFERS, offers);
+          notifyStoreUpdated(STORAGE_KEYS.OFFERS);
+        } else {
+          INITIAL_OFFERS.forEach((o) => {
+            setDoc(doc(db, "offers", o.offerId), o).catch(console.error);
+          });
+        }
+      }, (err) => console.warn("Firestore offers sync error:", err));
+
+      // 8. Gym Programs
+      onSnapshot(doc(db, "siteSettings", "programs"), (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data() as { list: GymProgram[] };
+          if (data?.list) {
+            setItem(STORAGE_KEYS.PROGRAMS, data.list);
+            notifyStoreUpdated(STORAGE_KEYS.PROGRAMS);
+          }
+        } else {
+          setDoc(doc(db, "siteSettings", "programs"), { list: INITIAL_PROGRAMS }).catch(console.error);
+        }
+      }, (err) => console.warn("Firestore programs sync error:", err));
+
+      // 9. Gallery
+      onSnapshot(doc(db, "siteSettings", "gallery"), (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data() as { list: GalleryMedia[] };
+          if (data?.list) {
+            setItem(STORAGE_KEYS.GALLERY, data.list);
+            notifyStoreUpdated(STORAGE_KEYS.GALLERY);
+          }
+        } else {
+          setDoc(doc(db, "siteSettings", "gallery"), { list: INITIAL_GALLERY }).catch(console.error);
+        }
+      }, (err) => console.warn("Firestore gallery sync error:", err));
+
+      // 10. Notifications
+      onSnapshot(collection(db, "notifications"), (snapshot) => {
+        if (!snapshot.empty) {
+          const notifs: SystemNotification[] = [];
+          snapshot.forEach((d) => notifs.push(d.data() as SystemNotification));
+          notifs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          setItem(STORAGE_KEYS.NOTIFICATIONS, notifs);
+          notifyStoreUpdated(STORAGE_KEYS.NOTIFICATIONS);
+        } else {
+          INITIAL_NOTIFICATIONS.forEach((n) => {
+            setDoc(doc(db, "notifications", n.notificationId), n).catch(console.error);
+          });
+        }
+      }, (err) => console.warn("Firestore notifications sync error:", err));
+
+      // 11. Audit Logs
+      onSnapshot(collection(db, "auditLogs"), (snapshot) => {
+        if (!snapshot.empty) {
+          const logs: AuditLogEntry[] = [];
+          snapshot.forEach((d) => logs.push(d.data() as AuditLogEntry));
+          logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+          setItem(STORAGE_KEYS.AUDIT_LOGS, logs);
+          notifyStoreUpdated(STORAGE_KEYS.AUDIT_LOGS);
+        }
+      }, (err) => console.warn("Firestore audit logs sync error:", err));
+    } catch (e) {
+      console.error("Failed to initialize Firestore sync:", e);
+    }
+  },
+
   getSettings(): SiteSettings {
     return getItem(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
   },
   saveSettings(settings: SiteSettings, actor: string = "Admin"): void {
     setItem(STORAGE_KEYS.SETTINGS, settings);
-    GymStore.logAction(actor, "UPDATE_SETTINGS", "content", "siteSettings", "Updated gym information or monthly fee", `Monthly fee set to PKR ${settings.standardMonthlyFee}`);
+    notifyStoreUpdated(STORAGE_KEYS.SETTINGS);
+    setDoc(doc(db, "siteSettings", "config"), settings).catch((err) =>
+      console.error("Failed to save settings to Firestore:", err)
+    );
+    GymStore.logAction(
+      actor,
+      "UPDATE_SETTINGS",
+      "content",
+      "siteSettings",
+      "Updated gym information or monthly fee",
+      `Monthly fee set to PKR ${settings.standardMonthlyFee}`
+    );
   },
 
   getApplications(): AdmissionApplication[] {
     return getItem(STORAGE_KEYS.APPLICATIONS, INITIAL_APPLICATIONS);
   },
-  submitApplication(app: Omit<AdmissionApplication, "applicationId" | "applicationStatus" | "paymentStatus" | "createdAt">): AdmissionApplication {
+  submitApplication(
+    app: Omit<AdmissionApplication, "applicationId" | "applicationStatus" | "paymentStatus" | "createdAt">
+  ): AdmissionApplication {
     const apps = GymStore.getApplications();
     const newApp: AdmissionApplication = {
       ...app,
@@ -382,8 +575,27 @@ export const GymStore = {
     };
     apps.unshift(newApp);
     setItem(STORAGE_KEYS.APPLICATIONS, apps);
-    GymStore.logAction(app.fullName, "SUBMIT_APPLICATION", "admission", newApp.applicationId, "New admission submitted online", `Requested ${newApp.requestedPlanName}`);
-    GymStore.createNotification("all", "New Admission Application", `${app.fullName} has submitted an admission application (#${newApp.applicationId}).`, "admission");
+    notifyStoreUpdated(STORAGE_KEYS.APPLICATIONS);
+
+    // Persist to Cloud Firestore
+    setDoc(doc(db, "admissionApplications", newApp.applicationId), newApp).catch((err) =>
+      console.error("Failed to save application to Firestore:", err)
+    );
+
+    GymStore.logAction(
+      app.fullName,
+      "SUBMIT_APPLICATION",
+      "admission",
+      newApp.applicationId,
+      "New admission submitted online",
+      `Requested ${newApp.requestedPlanName}`
+    );
+    GymStore.createNotification(
+      "all",
+      "New Admission Application",
+      `${app.fullName} has submitted an admission application (#${newApp.applicationId}).`,
+      "admission"
+    );
     return newApp;
   },
   updateApplication(appId: string, updates: Partial<AdmissionApplication>, actor: string = "Admin"): void {
@@ -392,8 +604,41 @@ export const GymStore = {
     if (idx !== -1) {
       apps[idx] = { ...apps[idx], ...updates, updatedAt: new Date().toISOString() };
       setItem(STORAGE_KEYS.APPLICATIONS, apps);
-      GymStore.logAction(actor, "UPDATE_APPLICATION", "admission", appId, "Application status modified", `Status: ${updates.applicationStatus || "modified"}`);
+      notifyStoreUpdated(STORAGE_KEYS.APPLICATIONS);
+
+      setDoc(doc(db, "admissionApplications", appId), apps[idx], { merge: true }).catch((err) =>
+        console.error("Failed to update application in Firestore:", err)
+      );
+
+      GymStore.logAction(
+        actor,
+        "UPDATE_APPLICATION",
+        "admission",
+        appId,
+        "Application status modified",
+        `Status: ${updates.applicationStatus || "modified"}`
+      );
     }
+  },
+  deleteApplication(appId: string, actor: string = "Admin"): void {
+    const apps = GymStore.getApplications();
+    const app = apps.find((a) => a.applicationId === appId);
+    const updated = apps.filter((a) => a.applicationId !== appId);
+    setItem(STORAGE_KEYS.APPLICATIONS, updated);
+    notifyStoreUpdated(STORAGE_KEYS.APPLICATIONS);
+
+    deleteDoc(doc(db, "admissionApplications", appId)).catch((err) =>
+      console.error("Failed to delete application from Firestore:", err)
+    );
+
+    GymStore.logAction(
+      actor,
+      "DELETE_APPLICATION",
+      "admission",
+      appId,
+      "Admission application deleted",
+      app?.fullName || appId
+    );
   },
 
   getMemberships(): Membership[] {
@@ -408,7 +653,20 @@ export const GymStore = {
     };
     mems.unshift(newMem);
     setItem(STORAGE_KEYS.MEMBERSHIPS, mems);
-    GymStore.logAction(actor, "ACTIVATE_MEMBERSHIP", "membership", newMem.membershipId, "Membership activated", `Member: ${newMem.customerName}, valid until ${newMem.endDate}`);
+    notifyStoreUpdated(STORAGE_KEYS.MEMBERSHIPS);
+
+    setDoc(doc(db, "memberships", newMem.membershipId), newMem).catch((err) =>
+      console.error("Failed to create membership in Firestore:", err)
+    );
+
+    GymStore.logAction(
+      actor,
+      "ACTIVATE_MEMBERSHIP",
+      "membership",
+      newMem.membershipId,
+      "Membership activated",
+      `Member: ${newMem.customerName}, valid until ${newMem.endDate}`
+    );
     return newMem;
   },
   updateMembership(memId: string, updates: Partial<Membership>, actor: string = "Admin"): void {
@@ -417,7 +675,20 @@ export const GymStore = {
     if (idx !== -1) {
       mems[idx] = { ...mems[idx], ...updates, updatedAt: new Date().toISOString() };
       setItem(STORAGE_KEYS.MEMBERSHIPS, mems);
-      GymStore.logAction(actor, "UPDATE_MEMBERSHIP", "membership", memId, "Membership details modified", JSON.stringify(updates));
+      notifyStoreUpdated(STORAGE_KEYS.MEMBERSHIPS);
+
+      setDoc(doc(db, "memberships", memId), mems[idx], { merge: true }).catch((err) =>
+        console.error("Failed to update membership in Firestore:", err)
+      );
+
+      GymStore.logAction(
+        actor,
+        "UPDATE_MEMBERSHIP",
+        "membership",
+        memId,
+        "Membership details modified",
+        JSON.stringify(updates)
+      );
     }
   },
   deleteMembership(memId: string, actor: string = "Admin"): void {
@@ -425,6 +696,12 @@ export const GymStore = {
     const member = mems.find((m) => m.membershipId === memId);
     const updated = mems.filter((m) => m.membershipId !== memId);
     setItem(STORAGE_KEYS.MEMBERSHIPS, updated);
+    notifyStoreUpdated(STORAGE_KEYS.MEMBERSHIPS);
+
+    deleteDoc(doc(db, "memberships", memId)).catch((err) =>
+      console.error("Failed to delete membership from Firestore:", err)
+    );
+
     GymStore.logAction(
       actor,
       "DELETE_MEMBER",
@@ -440,18 +717,14 @@ export const GymStore = {
       "membership"
     );
   },
-  deleteApplication(appId: string, actor: string = "Admin"): void {
-    const apps = GymStore.getApplications();
-    const app = apps.find((a) => a.applicationId === appId);
-    const updated = apps.filter((a) => a.applicationId !== appId);
-    setItem(STORAGE_KEYS.APPLICATIONS, updated);
-    GymStore.logAction(actor, "DELETE_APPLICATION", "admission", appId, "Admission application deleted", app?.fullName || appId);
-  },
 
   getPayments(): PaymentTransaction[] {
     return getItem(STORAGE_KEYS.PAYMENTS, INITIAL_PAYMENTS);
   },
-  recordPayment(paymentData: Omit<PaymentTransaction, "paymentId" | "receiptNumber" | "createdAt">, actor: string = "Admin"): PaymentTransaction {
+  recordPayment(
+    paymentData: Omit<PaymentTransaction, "paymentId" | "receiptNumber" | "createdAt">,
+    actor: string = "Admin"
+  ): PaymentTransaction {
     const payments = GymStore.getPayments();
     const receiptNumber = `RCP-${new Date().getFullYear()}-${String(payments.length + 1).padStart(3, "0")}`;
     const newPayment: PaymentTransaction = {
@@ -462,6 +735,12 @@ export const GymStore = {
     };
     payments.unshift(newPayment);
     setItem(STORAGE_KEYS.PAYMENTS, payments);
+    notifyStoreUpdated(STORAGE_KEYS.PAYMENTS);
+
+    // Persist payment to Firestore
+    setDoc(doc(db, "payments", newPayment.paymentId), newPayment).catch((err) =>
+      console.error("Failed to save payment to Firestore:", err)
+    );
 
     // Update the corresponding membership balance & payment status
     if (paymentData.membershipId) {
@@ -479,10 +758,22 @@ export const GymStore = {
           updatedAt: new Date().toISOString(),
         };
         setItem(STORAGE_KEYS.MEMBERSHIPS, mems);
+        notifyStoreUpdated(STORAGE_KEYS.MEMBERSHIPS);
+
+        setDoc(doc(db, "memberships", paymentData.membershipId), mems[memIdx], { merge: true }).catch((err) =>
+          console.error("Failed to sync updated membership balance to Firestore:", err)
+        );
       }
     }
 
-    GymStore.logAction(actor, "RECORD_PAYMENT", "payment", newPayment.paymentId, `Recorded payment of PKR ${newPayment.amountReceived}`, `Receipt: ${receiptNumber}, Method: ${newPayment.paymentMethod}`);
+    GymStore.logAction(
+      actor,
+      "RECORD_PAYMENT",
+      "payment",
+      newPayment.paymentId,
+      `Recorded payment of PKR ${newPayment.amountReceived}`,
+      `Receipt: ${receiptNumber}, Method: ${newPayment.paymentMethod}`
+    );
     return newPayment;
   },
 
@@ -498,7 +789,20 @@ export const GymStore = {
       list.unshift(discount);
     }
     setItem(STORAGE_KEYS.DISCOUNTS, list);
-    GymStore.logAction(actor, "SAVE_DISCOUNT", "discount", discount.discountId, "Created or edited discount coupon", discount.name);
+    notifyStoreUpdated(STORAGE_KEYS.DISCOUNTS);
+
+    setDoc(doc(db, "discounts", discount.discountId), discount).catch((err) =>
+      console.error("Failed to save discount to Firestore:", err)
+    );
+
+    GymStore.logAction(
+      actor,
+      "SAVE_DISCOUNT",
+      "discount",
+      discount.discountId,
+      "Created or edited discount coupon",
+      discount.name
+    );
   },
   toggleDiscount(discountId: string, actor: string = "Admin"): void {
     const list = GymStore.getDiscounts();
@@ -506,7 +810,20 @@ export const GymStore = {
     if (item) {
       item.isActive = !item.isActive;
       setItem(STORAGE_KEYS.DISCOUNTS, list);
-      GymStore.logAction(actor, "TOGGLE_DISCOUNT", "discount", discountId, `Toggled discount active status to ${item.isActive}`, item.name);
+      notifyStoreUpdated(STORAGE_KEYS.DISCOUNTS);
+
+      setDoc(doc(db, "discounts", discountId), item, { merge: true }).catch((err) =>
+        console.error("Failed to toggle discount in Firestore:", err)
+      );
+
+      GymStore.logAction(
+        actor,
+        "TOGGLE_DISCOUNT",
+        "discount",
+        discountId,
+        `Toggled discount active status to ${item.isActive}`,
+        item.name
+      );
     }
   },
 
@@ -522,6 +839,12 @@ export const GymStore = {
       list.unshift(offer);
     }
     setItem(STORAGE_KEYS.OFFERS, list);
+    notifyStoreUpdated(STORAGE_KEYS.OFFERS);
+
+    setDoc(doc(db, "offers", offer.offerId), offer).catch((err) =>
+      console.error("Failed to save offer to Firestore:", err)
+    );
+
     GymStore.logAction(actor, "SAVE_OFFER", "offer", offer.offerId, "Saved special marketing offer", offer.title);
   },
 
@@ -530,6 +853,10 @@ export const GymStore = {
   },
   savePrograms(programs: GymProgram[]): void {
     setItem(STORAGE_KEYS.PROGRAMS, programs);
+    notifyStoreUpdated(STORAGE_KEYS.PROGRAMS);
+    setDoc(doc(db, "siteSettings", "programs"), { list: programs }).catch((err) =>
+      console.error("Failed to save programs to Firestore:", err)
+    );
   },
 
   getGallery(): GalleryMedia[] {
@@ -537,12 +864,21 @@ export const GymStore = {
   },
   saveGallery(gallery: GalleryMedia[]): void {
     setItem(STORAGE_KEYS.GALLERY, gallery);
+    notifyStoreUpdated(STORAGE_KEYS.GALLERY);
+    setDoc(doc(db, "siteSettings", "gallery"), { list: gallery }).catch((err) =>
+      console.error("Failed to save gallery to Firestore:", err)
+    );
   },
 
   getNotifications(): SystemNotification[] {
     return getItem(STORAGE_KEYS.NOTIFICATIONS, INITIAL_NOTIFICATIONS);
   },
-  createNotification(recipientId: string, title: string, message: string, type: SystemNotification["type"]): void {
+  createNotification(
+    recipientId: string,
+    title: string,
+    message: string,
+    type: SystemNotification["type"]
+  ): void {
     const list = GymStore.getNotifications();
     const notif: SystemNotification = {
       notificationId: generateCustomId("NOTIF"),
@@ -555,6 +891,11 @@ export const GymStore = {
     };
     list.unshift(notif);
     setItem(STORAGE_KEYS.NOTIFICATIONS, list);
+    notifyStoreUpdated(STORAGE_KEYS.NOTIFICATIONS);
+
+    setDoc(doc(db, "notifications", notif.notificationId), notif).catch((err) =>
+      console.error("Failed to save notification to Firestore:", err)
+    );
   },
   markNotificationRead(id: string): void {
     const list = GymStore.getNotifications();
@@ -562,13 +903,25 @@ export const GymStore = {
     if (item) {
       item.isRead = true;
       setItem(STORAGE_KEYS.NOTIFICATIONS, list);
+      notifyStoreUpdated(STORAGE_KEYS.NOTIFICATIONS);
+
+      setDoc(doc(db, "notifications", id), { isRead: true }, { merge: true }).catch((err) =>
+        console.error("Failed to mark notification read in Firestore:", err)
+      );
     }
   },
 
   getAuditLogs(): AuditLogEntry[] {
     return getItem(STORAGE_KEYS.AUDIT_LOGS, INITIAL_AUDIT_LOGS);
   },
-  logAction(actorName: string, action: string, entityType: AuditLogEntry["entityType"], entityId: string, reason: string, changeSummary: string): void {
+  logAction(
+    actorName: string,
+    action: string,
+    entityType: AuditLogEntry["entityType"],
+    entityId: string,
+    reason: string,
+    changeSummary: string
+  ): void {
     const logs = GymStore.getAuditLogs();
     const entry: AuditLogEntry = {
       logId: generateCustomId("LOG"),
@@ -583,16 +936,35 @@ export const GymStore = {
     };
     logs.unshift(entry);
     setItem(STORAGE_KEYS.AUDIT_LOGS, logs);
+    notifyStoreUpdated(STORAGE_KEYS.AUDIT_LOGS);
+
+    setDoc(doc(db, "auditLogs", entry.logId), entry).catch((err) =>
+      console.error("Failed to log audit action to Firestore:", err)
+    );
   },
 
   getAdminCredentials(): { username: string; passwordHash: string } {
-    return getItem("sgk_admin_credentials", {
+    return getItem(STORAGE_KEYS.CREDENTIALS, {
       username: "safdarbad_admin",
       passwordHash: "SfdGym#2026!Pk",
     });
   },
   saveAdminCredentials(username: string, passwordHash: string, actor: string = "Admin"): void {
-    setItem("sgk_admin_credentials", { username, passwordHash });
-    GymStore.logAction(actor, "UPDATE_SECURITY", "security", "ADMIN_ACCOUNT", "Changed administrator login credentials", `Username set to ${username}`);
+    const creds = { username, passwordHash };
+    setItem(STORAGE_KEYS.CREDENTIALS, creds);
+    notifyStoreUpdated(STORAGE_KEYS.CREDENTIALS);
+
+    setDoc(doc(db, "siteSettings", "adminCredentials"), creds).catch((err) =>
+      console.error("Failed to save admin credentials to Firestore:", err)
+    );
+
+    GymStore.logAction(
+      actor,
+      "UPDATE_SECURITY",
+      "security",
+      "ADMIN_ACCOUNT",
+      "Changed administrator login credentials",
+      `Username set to ${username}`
+    );
   },
 };

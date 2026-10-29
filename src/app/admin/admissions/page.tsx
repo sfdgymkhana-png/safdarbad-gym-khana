@@ -48,6 +48,7 @@ export default function AdminAdmissionsPage() {
 
   useEffect(() => {
     loadData();
+    return GymStore.subscribe(loadData);
   }, []);
 
   const filtered = applications.filter((a) => {

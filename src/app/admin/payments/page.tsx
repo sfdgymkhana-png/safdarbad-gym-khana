@@ -41,6 +41,7 @@ export default function AdminPaymentsPage() {
 
   useEffect(() => {
     loadData();
+    return GymStore.subscribe(loadData);
   }, []);
 
   const filtered = payments.filter((p) => {

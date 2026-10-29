@@ -85,6 +85,13 @@ export default function AdminMembersPage() {
     const settings = GymStore.getSettings();
     setNewAdmissionFee(settings.standardAdmissionFee ?? 3000);
     setNewMonthlyFee(settings.standardMonthlyFee ?? 2500);
+
+    return GymStore.subscribe(() => {
+      loadData();
+      const s = GymStore.getSettings();
+      setNewAdmissionFee(s.standardAdmissionFee ?? 3000);
+      setNewMonthlyFee(s.standardMonthlyFee ?? 2500);
+    });
   }, []);
 
   const triggerSuccess = (msg: string) => {

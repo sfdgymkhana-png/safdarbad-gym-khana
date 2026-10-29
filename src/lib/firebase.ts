@@ -4,12 +4,12 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyD-mockKeyForLocalDevelopmentAndBuild000",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDdOWrQBngytBnbDHHoei_KgP3sZv72YYI",
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "safdarbad-gymkhana.firebaseapp.com",
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "safdarbad-gymkhana",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "safdarbad-gymkhana.appspot.com",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "100000000000",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:100000000000:web:0000000000000000000000",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "safdarbad-gymkhana.firebasestorage.app",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "682539070455",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:682539070455:web:3722d2187a34d9e44574f2",
 };
 
 // Initialize Firebase safely

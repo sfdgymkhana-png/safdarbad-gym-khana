@@ -51,6 +51,8 @@ export const metadata: Metadata = {
   },
 };
 
+import StoreInitializer from "@/components/StoreInitializer";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -59,6 +61,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark scroll-smooth">
       <body className={`${oswald.variable} ${inter.variable} antialiased bg-[#101010] text-white selection:bg-[#FF6B00] selection:text-white min-h-screen`}>
+        <StoreInitializer />
         {children}
       </body>
     </html>

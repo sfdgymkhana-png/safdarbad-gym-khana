@@ -42,30 +42,35 @@ export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState<string>("All");
 
   useEffect(() => {
-    setSettings(GymStore.getSettings());
-    const currentSettings = GymStore.getSettings();
-    setPlans(currentSettings ? [
-      {
-        planId: "PLAN-MONTHLY",
-        name: "Standard Monthly Membership",
-        description: "Full access to all weight training facilities, dumbbells, barbells, and gym machines.",
-        durationMonths: 1,
-        basePrice: currentSettings.standardMonthlyFee || 2500,
-        isActive: true,
-        features: [
-          `One-Time Admission Fee (New Members Only): ${formatPKR(currentSettings.standardAdmissionFee || 3000)}`,
-          `Standard Monthly Charge: ${formatPKR(currentSettings.standardMonthlyFee || 2500)} / Month`,
-          "Unlimited Daily Gym Access (6 AM - 11 PM)",
-          "Full Access to Dumbbells & Power Cages",
-          "Chest, Back, Leg & Shoulder Machines",
-          "Changing Room & Locker Storage",
-          "Beginner Lifting Guidance",
-        ],
-      },
-    ] : []);
-    setPrograms(GymStore.getPrograms());
-    setGallery(GymStore.getGallery());
-    setOffers(GymStore.getOffers().filter((o) => o.isPublished));
+    const refreshData = () => {
+      const currentSettings = GymStore.getSettings();
+      setSettings(currentSettings);
+      setPlans(currentSettings ? [
+        {
+          planId: "PLAN-MONTHLY",
+          name: "Standard Monthly Membership",
+          description: "Full access to all weight training facilities, dumbbells, barbells, and gym machines.",
+          durationMonths: 1,
+          basePrice: currentSettings.standardMonthlyFee || 2500,
+          isActive: true,
+          features: [
+            `One-Time Admission Fee (New Members Only): ${formatPKR(currentSettings.standardAdmissionFee || 3000)}`,
+            `Standard Monthly Charge: ${formatPKR(currentSettings.standardMonthlyFee || 2500)} / Month`,
+            "Unlimited Daily Gym Access (6 AM - 11 PM)",
+            "Full Access to Dumbbells & Power Cages",
+            "Chest, Back, Leg & Shoulder Machines",
+            "Changing Room & Locker Storage",
+            "Beginner Lifting Guidance",
+          ],
+        },
+      ] : []);
+      setPrograms(GymStore.getPrograms());
+      setGallery(GymStore.getGallery());
+      setOffers(GymStore.getOffers().filter((o) => o.isPublished));
+    };
+
+    refreshData();
+    return GymStore.subscribe(refreshData);
   }, []);
 
   const filteredGallery =
