@@ -1,0 +1,41 @@
+{
+  "status": 200,
+  "headers": {
+    "link": "</_next/static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\"",
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/admin/layout,_N_T_/admin/payments/layout,_N_T_/admin/payments/page,_N_T_/admin/payments"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/admin/payments/__PAGE__"
+  ],
+  "prefetchHints": {
+    "hints": 49216,
+    "slots": {
+      "children": {
+        "hints": 49248,
+        "slots": {
+          "children": {
+            "hints": 49248,
+            "slots": {
+              "children": {
+                "hints": 49312,
+                "slots": null
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "routeCache": {
+    "key": "/route-cache/APP_PAGE/5856fcd4b197584f89e59897d1431ccc759fc6f6184f3a9d657d51fe58ca3a93/$/admin/payments",
+    "owner": {
+      "kind": "APP_PAGE",
+      "sourceRoute": "/admin/payments/page"
+    },
+    "isFallback": false
+  }
+}

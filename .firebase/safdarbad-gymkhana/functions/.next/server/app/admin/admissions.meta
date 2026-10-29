@@ -1,0 +1,41 @@
+{
+  "status": 200,
+  "headers": {
+    "link": "</_next/static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\"",
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/admin/layout,_N_T_/admin/admissions/layout,_N_T_/admin/admissions/page,_N_T_/admin/admissions"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/admin/admissions/__PAGE__"
+  ],
+  "prefetchHints": {
+    "hints": 49216,
+    "slots": {
+      "children": {
+        "hints": 49248,
+        "slots": {
+          "children": {
+            "hints": 49248,
+            "slots": {
+              "children": {
+                "hints": 49312,
+                "slots": null
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "routeCache": {
+    "key": "/route-cache/APP_PAGE/d39a4ecf4a60b51f5699550b14565758899127d10dd272be40098bdb4d1b7abb/$/admin/admissions",
+    "owner": {
+      "kind": "APP_PAGE",
+      "sourceRoute": "/admin/admissions/page"
+    },
+    "isFallback": false
+  }
+}

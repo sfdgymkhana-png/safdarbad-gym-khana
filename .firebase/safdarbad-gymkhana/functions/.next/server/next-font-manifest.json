@@ -1,0 +1,95 @@
+{
+  "app": {
+    "[project]/src/app/_not-found/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/account/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admin/admissions/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admin/audit-logs/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admin/content/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admin/dashboard/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admin/discounts/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admin/gallery/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admin/members/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admin/memberships/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admin/notifications/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admin/offers/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admin/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admin/payments/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admin/programs/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admin/reports/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admin/settings/security/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admin/settings/social/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/admission/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/forgot-password/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/login/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ],
+    "[project]/src/app/page": [
+      "static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2",
+      "static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2"
+    ]
+  },
+  "appUsingSizeAdjust": true,
+  "pages": {},
+  "pagesUsingSizeAdjust": false
+}

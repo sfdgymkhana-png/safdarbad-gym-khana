@@ -1,0 +1,36 @@
+{
+  "status": 200,
+  "headers": {
+    "link": "</_next/static/media/07c7676b89ed2778-s.p.2bn3s6zvc0dyp.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\", </_next/static/media/5f77ed8559e37d64-s.p.2j22bd4n1tlhh.woff2>; rel=preload; as=\"font\"; crossorigin=\"\"; type=\"font/woff2\"",
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/admission/layout,_N_T_/admission/page,_N_T_/admission"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/admission/__PAGE__"
+  ],
+  "prefetchHints": {
+    "hints": 49216,
+    "slots": {
+      "children": {
+        "hints": 49248,
+        "slots": {
+          "children": {
+            "hints": 49312,
+            "slots": null
+          }
+        }
+      }
+    }
+  },
+  "routeCache": {
+    "key": "/route-cache/APP_PAGE/04a66a0d0b0205d77daa29a04fd2547267ec0c7f7c96b8a535d1b53e7f027ecb/$/admission",
+    "owner": {
+      "kind": "APP_PAGE",
+      "sourceRoute": "/admission/page"
+    },
+    "isFallback": false
+  }
+}

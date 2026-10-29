@@ -1,0 +1,3 @@
+{
+  "/api/scheduled/expiry-check/route": "app/api/scheduled/expiry-check/route.js"
+}
